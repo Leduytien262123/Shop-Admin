@@ -27,7 +27,6 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^4.13.1",
     "@iconify/json": "^2.2.350",
     "@unocss/eslint-config": "^66.2.3",
     "@unocss/eslint-plugin": "^66.2.3",

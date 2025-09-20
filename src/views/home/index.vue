@@ -3,7 +3,12 @@
     <div class="flex">
       <n-card class="min-w-200 w-30%">
         <div class="flex items-center">
-          <n-avatar round :size="60" :src="userStore.avatar" class="flex-shrink-0" />
+          <n-avatar
+            round
+            :size="60"
+            :src="userStore.avatar || userEmpty"
+            class="flex-shrink-0"
+          />
           <div class="ml-20 flex-col">
             <span class="text-20 opacity-80">
               Xin chào, {{ userStore.nickName ?? userStore.username }}
@@ -13,15 +18,19 @@
         </div>
 
         <p class="mt-28 text-14 opacity-60">
-          Một người gần như có thể thành công trong bất kỳ việc gì mà họ có niềm đam mê vô hạn.
+          Một người gần như có thể thành công trong bất kỳ việc gì mà họ có niềm
+          đam mê vô hạn.
         </p>
-
       </n-card>
-      <n-card class="ml-12 w-70%" title="✨ Chào mừng đến với ứng dụng quản trị">
+      <n-card
+        class="ml-12 w-70%"
+        title="✨ Chào mừng đến với ứng dụng quản trị"
+      >
         <p class="opacity-60">
-          Đây là một template quản trị backend với phong cách tối giản, bao gồm giải pháp frontend và backend, 
-          frontend sử dụng Vite + Vue3 + Pinia + Unocss, backend sử dụng Nestjs + TypeOrm + MySql, 
-          đơn giản dễ dùng, đẹp mắt, trải qua hàng chục lần tái cấu trúc và chăm chút chi tiết!
+          Đây là một template quản trị backend với phong cách tối giản, bao gồm
+          giải pháp frontend và backend, frontend sử dụng Vite + Vue3 + Pinia +
+          Unocss, backend sử dụng Nestjs + TypeOrm + MySql, đơn giản dễ dùng,
+          đẹp mắt, trải qua hàng chục lần tái cấu trúc và chăm chút chi tiết!
         </p>
         <!-- <footer class="mt-12 flex items-center justify-end">
           <n-button
@@ -48,7 +57,9 @@
     <div class="mt-12 flex">
       <n-card class="w-50%" title="💯 Tính năng" segmented>
         <template #header-extra>
-          <span class="text-highlight opacity-90">👏 Trải qua hàng chục lần tái cấu trúc và chăm chút chi tiết</span>
+          <span class="text-highlight opacity-90"
+            >👏 Trải qua hàng chục lần tái cấu trúc và chăm chút chi tiết</span
+          >
         </template>
 
         <ul class="opacity-90">
@@ -72,7 +83,10 @@
           </li>
           <li class="py-4">
             🎨 Sử dụng Naive UI,
-            <span class="text-highlight">phong cách code cực kỳ đơn giản và thiết kế giao diện sạch sẽ</span>
+            <span class="text-highlight"
+              >phong cách code cực kỳ đơn giản và thiết kế giao diện sạch
+              sẽ</span
+            >
             , thẩm mỹ trực tuyến, tùy chỉnh theme dễ dàng
           </li>
           <li class="py-4">
@@ -83,7 +97,8 @@
           <li class="py-4">
             🚀
             <span class="text-highlight">Thiết kế route phẳng</span>
-            , mỗi component đều có thể là một page, tạm biệt vấn đề khó implement KeepAlive của multi-level route
+            , mỗi component đều có thể là một page, tạm biệt vấn đề khó
+            implement KeepAlive của multi-level route
           </li>
 
           <li class="py-4">
@@ -96,15 +111,18 @@
           <li class="py-4">
             🔐 Tích hợp Redis
             <span class="text-highlight">refresh không cảm nhận</span>
-            , trạng thái đăng nhập người dùng có thể kiểm soát, bảo mật và trải nghiệm không thể thiếu
+            , trạng thái đăng nhập người dùng có thể kiểm soát, bảo mật và trải
+            nghiệm không thể thiếu
           </li>
           <li class="py-4">
             ✨ Dựa trên Naive UI đóng gói
             <span class="text-highlight">message</span>
-            phương thức công cụ toàn cục, hỗ trợ nhắc nhở hàng loạt, hỗ trợ chia sẻ instance giữa các trang
+            phương thức công cụ toàn cục, hỗ trợ nhắc nhở hàng loạt, hỗ trợ chia
+            sẻ instance giữa các trang
           </li>
           <li class="py-4">
-            ⚡️ Dựa trên Naive UI đóng gói các component nghiệp vụ thường dùng, bao gồm
+            ⚡️ Dựa trên Naive UI đóng gói các component nghiệp vụ thường dùng,
+            bao gồm
             <span class="text-highlight">Page</span>
             component,
             <span class="text-highlight">CRUD</span>
@@ -139,15 +157,20 @@
 </template>
 
 <script setup>
-import { BarChart, LineChart, PieChart } from 'echarts/charts'
-import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
-import * as echarts from 'echarts/core'
-import { UniversalTransition } from 'echarts/features'
-import { CanvasRenderer } from 'echarts/renderers'
-import VChart from 'vue-echarts'
-import { useUserStore } from '@/store'
+import userEmpty from "@/public/img/user_empty.jpg";
+import { BarChart, LineChart, PieChart } from "echarts/charts";
+import {
+  GridComponent,
+  LegendComponent,
+  TooltipComponent,
+} from "echarts/components";
+import * as echarts from "echarts/core";
+import { UniversalTransition } from "echarts/features";
+import { CanvasRenderer } from "echarts/renderers";
+import VChart from "vue-echarts";
+import { useUserStore } from "@/store";
 
-const userStore = useUserStore()
+const userStore = useUserStore();
 
 echarts.use([
   TooltipComponent,
@@ -158,109 +181,122 @@ echarts.use([
   CanvasRenderer,
   UniversalTransition,
   PieChart,
-])
+]);
 
 const trendOption = {
   tooltip: {
-    trigger: 'axis',
+    trigger: "axis",
     axisPointer: {
-      type: 'cross',
+      type: "cross",
       crossStyle: {
-        color: '#999',
+        color: "#999",
       },
     },
   },
   legend: {
-    top: '5%',
-    data: ['star', 'fork'],
+    top: "5%",
+    data: ["star", "fork"],
   },
   xAxis: [
     {
-      type: 'category',
-      data: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
+      type: "category",
+      data: [
+        "Tháng 1",
+        "Tháng 2",
+        "Tháng 3",
+        "Tháng 4",
+        "Tháng 5",
+        "Tháng 6",
+        "Tháng 7",
+        "Tháng 8",
+        "Tháng 9",
+        "Tháng 10",
+        "Tháng 11",
+        "Tháng 12",
+      ],
       axisPointer: {
-        type: 'shadow',
+        type: "shadow",
       },
     },
   ],
   yAxis: [
     {
-      type: 'value',
+      type: "value",
       min: 0,
       max: 3000,
       interval: 500,
       axisLabel: {
-        formatter: '{value}',
+        formatter: "{value}",
       },
     },
     {
-      type: 'value',
+      type: "value",
       min: 0,
       max: 500,
       interval: 100,
       axisLabel: {
-        formatter: '{value}',
+        formatter: "{value}",
       },
     },
   ],
   series: [
     {
-      name: 'star',
-      type: 'line',
+      name: "star",
+      type: "line",
       data: [200, 320, 520, 550, 600, 805, 888, 950, 1300, 2503, 2702, 2712],
     },
     {
-      name: 'fork',
+      name: "fork",
       yAxisIndex: 1,
-      type: 'bar',
+      type: "bar",
       data: [40, 72, 110, 115, 121, 175, 180, 201, 260, 398, 423, 455],
     },
   ],
-}
+};
 
 const skillOption = {
   tooltip: {
-    trigger: 'item',
+    trigger: "item",
     formatter({ name, value }) {
-      return `${name} ${value}%`
+      return `${name} ${value}%`;
     },
   },
   legend: {
-    left: 'center',
+    left: "center",
   },
   series: [
     {
-      top: '12%',
-      type: 'pie',
-      radius: ['35%', '90%'],
+      top: "12%",
+      type: "pie",
+      radius: ["35%", "90%"],
       avoidLabelOverlap: true,
       itemStyle: {
         borderRadius: 10,
-        borderColor: '#fff',
+        borderColor: "#fff",
         borderWidth: 2,
       },
       label: {
         show: false,
-        position: 'center',
+        position: "center",
       },
       emphasis: {
         label: {
           show: true,
           fontSize: 36,
-          fontWeight: 'bold',
+          fontWeight: "bold",
         },
       },
       labelLine: {
         show: false,
       },
       data: [
-        { value: 38.5, name: 'Vue' },
-        { value: 37.0, name: 'JavaScript' },
-        { value: 6.5, name: 'CSS' },
-        { value: 6.2, name: 'HTML' },
-        { value: 1.8, name: 'Other' },
+        { value: 38.5, name: "Vue" },
+        { value: 37.0, name: "JavaScript" },
+        { value: 6.5, name: "CSS" },
+        { value: 6.2, name: "HTML" },
+        { value: 1.8, name: "Other" },
       ],
     },
   ],
-}
+};
 </script>

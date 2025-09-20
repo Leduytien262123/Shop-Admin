@@ -1,175 +1,292 @@
 export const basicRoutes = [
   {
-    name: 'Login',
-    path: '/login',
-    component: () => import('@/views/login/index.vue'),
+    name: "Login",
+    path: "/login",
+    component: () => import("@/views/login/index.vue"),
     meta: {
-      title: 'Trang đăng nhập',
-      layout: 'empty',
+      title: "Trang đăng nhập",
+      layout: "empty",
     },
   },
 
   {
-    name: 'Home',
-    path: '/',
-    component: () => import('@/views/home/index.vue'),
+    name: "Home",
+    path: "/",
+    component: () => import("@/views/home/index.vue"),
     meta: {
-      title: 'Trang chủ',
+      title: "Trang chủ",
     },
   },
 
   {
-    name: 'category',
-    path: '/category',
-    component: () => import('@/views/category/index.vue'),
+    name: "category",
+    path: "/category",
+    component: () => import("@/views/category/index.vue"),
     meta: {
-      title: 'Quản lý danh mục',
+      title: "Quản lý danh mục",
     },
   },
 
   {
-    name: 'category_add',
-    path: '/category/add',
-    component: () => import('@/views/category/add.vue'),
+    name: "category_add",
+    path: "/category/add",
+    component: () => import("@/views/category/add.vue"),
     meta: {
-      title: 'Thêm danh mục',
+      title: "Thêm danh mục",
     },
   },
 
   {
-    name: 'category_edit',
-    path: '/category/edit/:id',
-    component: () => import('@/views/category/edit/[id].vue'),
+    name: "category_edit",
+    path: "/category/edit/:id",
+    component: () => import("@/views/category/edit/[id].vue"),
     meta: {
-      title: 'Sửa danh mục',
+      title: "Sửa danh mục",
     },
   },
 
   {
-    name: 'product',
-    path: '/product',
-    component: () => import('@/views/product/index.vue'),
+    name: "product",
+    path: "/product",
+    component: () => import("@/views/product/index.vue"),
     meta: {
-      title: 'Quản lý sản phẩm',
+      title: "Quản lý sản phẩm",
     },
   },
 
   {
-    name: 'product_add',
-    path: '/product/add',
-    component: () => import('@/views/product/add.vue'),
+    name: "product_add",
+    path: "/product/add",
+    component: () => import("@/views/product/add.vue"),
     meta: {
-      title: 'Thêm sản phẩm',
+      title: "Thêm sản phẩm",
     },
   },
 
   {
-    name: 'product_edit',
-    path: '/product/edit/:id',
-    component: () => import('@/views/product/edit/[id].vue'),
+    name: "product_edit",
+    path: "/product/edit/:id",
+    component: () => import("@/views/product/edit/[id].vue"),
     meta: {
-      title: 'Sửa sản phẩm',
+      title: "Sửa sản phẩm",
     },
   },
 
   {
-    name: 'order',
-    path: '/order',
-    component: () => import('@/views/order/index.vue'),
+    name: "order",
+    path: "/order",
+    component: () => import("@/views/order/index.vue"),
     meta: {
-      title: 'Quản lý đơn hàng',
+      title: "Quản lý đơn hàng",
     },
   },
 
   {
-    name: 'order_add',
-    path: '/order/add',
-    component: () => import('@/views/order/add.vue'),
+    name: "order_add",
+    path: "/order/add",
+    component: () => import("@/views/order/add.vue"),
     meta: {
-      title: 'Thêm đơn hàng',
+      title: "Thêm đơn hàng",
     },
   },
 
   {
-    name: 'order_edit',
-    path: '/order/edit/:id',
-    component: () => import('@/views/order/edit/[id].vue'),
+    name: "order_edit",
+    path: "/order/edit/:id",
+    component: () => import("@/views/order/edit/[id].vue"),
     meta: {
-      title: 'Sửa đơn hàng',
+      title: "Sửa đơn hàng",
     },
   },
 
   {
-    name: 'coupon',
-    path: '/coupon',
-    component: () => import('@/views/coupon/index.vue'),
+    name: "discount",
+    path: "/discount",
+    component: () => import("@/views/discount/index.vue"),
     meta: {
-      title: 'Quản lý mã giảm giá',
+      title: "Quản lý mã giảm giá",
     },
   },
 
   {
-    name: 'coupon_add',
-    path: '/coupon/add',
-    component: () => import('@/views/coupon/add.vue'),
+    name: "discount_add",
+    path: "/discount/add",
+    component: () => import("@/views/discount/add.vue"),
     meta: {
-      title: 'Thêm mã giảm giá',
+      title: "Thêm mã giảm giá",
     },
   },
 
   {
-    name: 'coupon_edit',
-    path: '/coupon/edit/:id',
-    component: () => import('@/views/coupon/edit/[id].vue'),
+    name: "discount_edit",
+    path: "/discount/edit/:id",
+    component: () => import("@/views/discount/edit/[id].vue"),
     meta: {
-      title: 'Sửa mã giảm giá',
+      title: "Sửa mã giảm giá",
     },
   },
 
   {
-    name: 'user',
-    path: '/pms/user',
-    component: () => import('@/views/pms/user/index.vue'),
+    name: "blog-category",
+    path: "/blog-category",
+    component: () => import("@/views/blog-category/index.vue"),
     meta: {
-      title: 'Quản lý khách hàng',
+      title: "Quản lý danh mục bài viết",
     },
   },
 
   {
-    name: 'user',
-    path: '/pms/staff',
-    component: () => import('@/views/pms/user/index.vue'),
+    name: "blog-category_add",
+    path: "/blog-category/add",
+    component: () => import("@/views/blog-category/add.vue"),
     meta: {
-      title: 'Quản lý nhân sự',
+      title: "Thêm danh mục bài viết",
     },
   },
 
   {
-    name: 'role',
-    path: '/pms/role',
-    component: () => import('@/views/pms/role/index.vue'),
+    name: "blog-category_edit",
+    path: "/blog-category/edit/:id",
+    component: () => import("@/views/blog-category/edit/[id].vue"),
     meta: {
-      title: 'Quản lý vai trò',
+      title: "Sửa danh mục bài viết",
     },
   },
 
   {
-    name: '404',
-    path: '/404',
-    component: () => import('@/views/error-page/404.vue'),
+    name: "blog",
+    path: "/blog",
+    component: () => import("@/views/blog/index.vue"),
     meta: {
-      title: 'Trang không tồn tại',
-      layout: 'empty',
+      title: "Quản lý bài viết",
     },
   },
 
   {
-    name: '403',
-    path: '/403',
-    component: () => import('@/views/error-page/403.vue'),
+    name: "blog_add",
+    path: "/blog/add",
+    component: () => import("@/views/blog/add.vue"),
     meta: {
-      title: 'Không có quyền truy cập',
-      layout: 'empty',
+      title: "Thêm bài viết",
     },
   },
-]
+
+  {
+    name: "blog_edit",
+    path: "/blog/edit/:id",
+    component: () => import("@/views/blog/edit/[id].vue"),
+    meta: {
+      title: "Sửa bài viết",
+    },
+  },
+
+  {
+    name: "tag",
+    path: "/tag",
+    component: () => import("@/views/tag/index.vue"),
+    meta: {
+      title: "Quản lý thẻ Tag",
+    },
+  },
+
+  {
+    name: "tag_add",
+    path: "/tag/add",
+    component: () => import("@/views/tag/add.vue"),
+    meta: {
+      title: "Thêm thẻ Tag",
+    },
+  },
+
+  {
+    name: "tag_edit",
+    path: "/tag/edit/:id",
+    component: () => import("@/views/tag/edit/[id].vue"),
+    meta: {
+      title: "Sửa thẻ Tag",
+    },
+  },
+
+  {
+    name: "user",
+    path: "/user",
+    component: () => import("@/views/user/index.vue"),
+    meta: {
+      title: "Quản lý khách hàng",
+    },
+  },
+
+  {
+    name: "user_add",
+    path: "/user/add",
+    component: () => import("@/views/user/add.vue"),
+    meta: {
+      title: "Thêm khách hàng",
+    },
+  },
+
+  {
+    name: "user_edit",
+    path: "/user/edit/:id",
+    component: () => import("@/views/user/edit/[id].vue"),
+    meta: {
+      title: "Sửa khách hàng",
+    },
+  },
+
+  {
+    name: "staff",
+    path: "/staff",
+    component: () => import("@/views/staff/index.vue"),
+    meta: {
+      title: "Quản lý nhân sự",
+    },
+  },
+
+  {
+    name: "staff_add",
+    path: "/staff/add",
+    component: () => import("@/views/staff/add.vue"),
+    meta: {
+      title: "Thêm nhân sự",
+    },
+  },
+
+  {
+    name: "staff_edit",
+    path: "/staff/edit/:id",
+    component: () => import("@/views/staff/edit/[id].vue"),
+    meta: {
+      title: "Sửa nhân sự",
+    },
+  },
+
+  {
+    name: "role",
+    path: "/role",
+    component: () => import("@/views/role/index.vue"),
+    meta: {
+      title: "Quản lý vai trò",
+    },
+  },
+
+  {
+    name: "404",
+    path: "/404",
+    component: () => import("@/views/error-page/404.vue"),
+    meta: {
+      title: "Trang không tồn tại",
+      layout: "empty",
+    },
+  },
+
+  {
+    name: "403",
+    path: "/403",
+    component: () => import("@/views/error-page/403.vue"),
+    meta: {
+      title: "Không có quyền truy cập",
+      layout: "empty",
+    },
+  },
+];

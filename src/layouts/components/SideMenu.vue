@@ -14,167 +14,211 @@
 </template>
 
 <script setup>
-import { useAppStore, usePermissionStore } from '@/store'
-import { isExternal } from '@/utils'
+import { useAppStore, usePermissionStore } from "@/store";
+import { isExternal } from "@/utils";
 
-const router = useRouter()
-const route = useRoute()
-const appStore = useAppStore()
-const permissionStore = usePermissionStore()
+const router = useRouter();
+const route = useRoute();
+const appStore = useAppStore();
+const permissionStore = usePermissionStore();
 
-const menuRef = ref(null)
-const activeKey = computed(() => route.meta?.parentKey || route.name)
+const menuRef = ref(null);
+const activeKey = computed(() => {
+  // Nếu có parentKey trong route meta, sử dụng nó
+  if (route.meta?.parentKey) return route.meta.parentKey;
+
+  // Nếu có key trong route meta, sử dụng nó
+  if (route.meta?.key) return route.meta.key;
+
+  // Tìm menu phù hợp dựa trên path
+  const currentPath = route.path;
+
+  // Kiểm tra từng menu item để tìm menu phù hợp
+  function findMatchingMenu(options) {
+    for (const item of options) {
+      if (item.path) {
+        // Kiểm tra exact match hoặc path bắt đầu với menu path
+        if (
+          currentPath === item.path ||
+          currentPath.startsWith(item.path + "/")
+        ) {
+          return item.key;
+        }
+      }
+
+      // Kiểm tra trong children
+      if (item.children) {
+        for (const child of item.children) {
+          if (child.path) {
+            if (
+              currentPath === child.path ||
+              currentPath.startsWith(child.path + "/")
+            ) {
+              return child.key;
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  const matchedKey = findMatchingMenu(menuOptions.value);
+  if (matchedKey) return matchedKey;
+
+  // Fallback về route name
+  return route.name;
+});
 
 // Cấu trúc menu đúng format cho Naive UI
 const menuOptions = computed(() => [
   {
-    label: 'Dashboard',
-    key: 'dashboard',
-    path: '/'
+    label: "Dashboard",
+    key: "dashboard",
+    path: "/",
   },
   {
-    label: 'Quản lý sản phẩm',
-    key: 'product-management',
+    label: "Quản lý sản phẩm",
+    key: "product-management",
     children: [
       {
-        label: 'Danh mục sản phẩm',
-        key: 'category',
-        path: '/category'
+        label: "Danh mục sản phẩm",
+        key: "category",
+        path: "/category",
       },
       {
-        label: 'Sản phẩm',
-        key: 'product',
-        path: '/product'
-      }
-    ]
+        label: "Sản phẩm",
+        key: "product",
+        path: "/product",
+      },
+    ],
   },
   {
-    label: 'Quản lý đơn hàng',
-    key: 'order-management',
+    label: "Quản lý đơn hàng",
+    key: "order-management",
     children: [
       {
-        label: 'Đơn hàng',
-        key: 'order',
-        path: '/order'
+        label: "Đơn hàng",
+        key: "order",
+        path: "/order",
       },
       {
-        label: 'Mã giảm giá',
-        key: 'coupon',
-        path: '/coupon'
-      }
-    ]
+        label: "Mã giảm giá",
+        key: "discount",
+        path: "/discount",
+      },
+    ],
   },
   {
-    label: 'Quản lý bài viết',
-    key: 'post-management',
+    label: "Quản lý bài viết",
+    key: "post-management",
     children: [
       {
-        label: 'Danh mục bài viết',
-        key: 'category_news',
-        path: '/category_news'
+        label: "Danh mục bài viết",
+        key: "blog-category",
+        path: "/blog-category",
       },
       {
-        label: 'Bài viết',
-        key: 'new',
-        path: '/new'
+        label: "Bài viết",
+        key: "blog",
+        path: "/blog",
       },
       {
-        label: 'Tag',
-        key: 'tag',
-        path: '/tag'
+        label: "Tag",
+        key: "tag",
+        path: "/tag",
       },
       {
-        label: 'FAQ',
-        key: 'faq',
-        path: '/faq'
-      }
-    ]
+        label: "FAQ",
+        key: "faq",
+        path: "/faq",
+      },
+    ],
   },
   {
-    label: 'Quản lý người dùng',
-    key: 'user-management',
+    label: "Quản lý người dùng",
+    key: "user-management",
     children: [
       {
-        label: 'Quản lý khách hàng',
-        key: 'user',
-        path: '/pms/user'
+        label: "Quản lý khách hàng",
+        key: "user",
+        path: "/user",
       },
       {
-        label: 'Quản lý nhân sự',
-        key: 'staff',
-        path: '/pms/staff'
-      }
-    ]
+        label: "Quản lý nhân sự",
+        key: "staff",
+        path: "/staff",
+      },
+    ],
   },
   {
-    label: 'Quản lý hệ thống',
-    key: 'system-management',
+    label: "Quản lý hệ thống",
+    key: "system-management",
     children: [
       {
-        label: 'Vai trò',
-        key: 'role',
-        path: '/pms/role'
+        label: "Vai trò",
+        key: "role",
+        path: "/role",
       },
       {
-        label: 'Phân quyền vai trò',
-        key: 'role-permission',
-        path: '/pms/role-permission'
+        label: "Phân quyền vai trò",
+        key: "role-permission",
+        path: "/pms/role-permission",
       },
       {
-        label: 'Nhật ký hoạt động',
-        key: 'operation-log',
-        path: '/pms/operation-log'
-      }
-    ]
-  }
-])
+        label: "Nhật ký hoạt động",
+        key: "operation-log",
+        path: "/pms/operation-log",
+      },
+    ],
+  },
+]);
 
 // Tìm menu item theo key
 function findMenuItem(options, key) {
   for (const item of options) {
     if (item.key === key) {
-      return item
+      return item;
     }
     if (item.children) {
-      const found = findMenuItem(item.children, key)
-      if (found) return found
+      const found = findMenuItem(item.children, key);
+      if (found) return found;
     }
   }
-  return null
+  return null;
 }
 
 // Xử lý khi click menu
 function handleMenuSelect(key, item) {
-  
   // Nếu không có item, tìm trong menu options
   if (!item) {
-    item = findMenuItem(menuOptions.value, key)
+    item = findMenuItem(menuOptions.value, key);
   }
-  
+
   // Kiểm tra item có path không
   if (!item || !item.path) {
-    return
+    return;
   }
 
   try {
     if (isExternal(item.originPath || item.path)) {
       $dialog.confirm({
-        type: 'info',
-        title: 'Vui lòng chọn cách mở',
-        positiveText: 'Mở liên kết ngoài',
-        negativeText: 'Mở nhúng trong trang này',
+        type: "info",
+        title: "Vui lòng chọn cách mở",
+        positiveText: "Mở liên kết ngoài",
+        negativeText: "Mở nhúng trong trang này",
         onPositiveClick() {
-          window.open(item.originPath || item.path)
+          window.open(item.originPath || item.path);
         },
         onNegativeClick() {
-          router.push(item.path)
-        }
-      })
+          router.push(item.path);
+        },
+      });
     } else {
-      router.push(item.path)
+      router.push(item.path);
     }
   } catch (error) {
-    console.error('Lỗi khi xử lý menu:', error)
+    console.error("Lỗi khi xử lý menu:", error);
   }
 }
 
@@ -182,11 +226,10 @@ function handleMenuSelect(key, item) {
 watch(
   () => route.fullPath,
   () => {
-    nextTick(() => {
-    })
+    nextTick(() => {});
   },
   { immediate: true }
-)
+);
 </script>
 
 <style>

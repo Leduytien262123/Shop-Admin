@@ -1,5 +1,7 @@
 export default [
   {
+    // Removed `env` (not allowed in flat config); use languageOptions.globals instead
+
     rules: {
       // các rule bạn đã có sẵn
       "n/prefer-global/process": "off",
@@ -37,6 +39,9 @@ export default [
         $dialog: "readonly",
         $notification: "readonly",
         $modal: "readonly",
+        // Add runtime globals used in build/config files
+        process: "readonly",
+        URL: "readonly",
       },
     },
   },

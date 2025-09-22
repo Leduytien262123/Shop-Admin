@@ -1,8 +1,11 @@
 <template>
-  <AppCard class="flex items-center px-12" border-b="1px solid light_border dark:dark_border">
+  <AppCard
+    class="flex items-center px-12"
+    border-b="1px solid light_border dark:dark_border"
+  >
     <MenuCollapse />
 
-    <AppTab class="w-0 flex-1 px-12" />
+    <AppTab class="w-0 flex-1 px-12 hidden lg:block" />
 
     <span class="mx-6 opacity-20">|</span>
 
@@ -21,10 +24,16 @@
 </template>
 
 <script setup>
-import { ToggleTheme } from '@/components'
-import { AppTab, BeginnerGuide, Fullscreen, MenuCollapse, UserAvatar } from '@/layouts/components'
+import { ToggleTheme } from "@/components";
+import {
+  AppTab,
+  BeginnerGuide,
+  Fullscreen,
+  MenuCollapse,
+  UserAvatar,
+} from "@/layouts/components";
 
 function handleLinkClick(link) {
-  window.open(link)
+  window.open(link);
 }
 </script>

@@ -26,7 +26,7 @@ const categoryForm = ref({
     meta_title: "",
     meta_keywords: "",
     meta_description: "",
-    meta_image: [],
+    meta_image: null,
   },
 });
 
@@ -83,10 +83,10 @@ async function loadCategory() {
         show_home: response.data.data.show_home,
         show_footer: response.data.data.show_footer,
         metadata: {
-          meta_title: response.data.data.meta_title || "",
-          meta_keywords: response.data.data.meta_keywords || "",
-          meta_description: response.data.data.meta_description || "",
-          meta_image: response.data.data.meta_image || [],
+          meta_title: response.data.data.metadata?.meta_title || "",
+          meta_keywords: response.data.data.metadata?.meta_keywords || "",
+          meta_description: response.data.data.metadata?.meta_description || "",
+          meta_image: response.data.data.metadata?.meta_image,
         },
       };
     }

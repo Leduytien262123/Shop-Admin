@@ -13,7 +13,7 @@ const props = defineProps({
     required: true,
   },
   metaImage: {
-    type: Array,
+    type: Object,
     required: true,
   },
 });
@@ -24,6 +24,22 @@ const emit = defineEmits([
   "update:metaDescription",
   "update:metaImage",
 ]);
+
+const fileList = ref(props.metaImage ? [props.metaImage] : []);
+
+function handleUploadChange(newFileList) {
+  const file = newFileList[0];
+  if (file) {
+    const url = file.url || (file.response && file.response.url) || "";
+    const alt = file.name || "";
+    const imageObj = { url, alt };
+    emit("update:metaImage", imageObj);
+    fileList.value = [imageObj];
+  } else {
+    emit("update:metaImage", null);
+    fileList.value = [];
+  }
+}
 </script>
 
 <template>
@@ -61,8 +77,8 @@ const emit = defineEmits([
       </n-form-item>
       <n-form-item label="Meta Image">
         <NaiveUpload
-          :file-list="metaImage"
-          @update:file-list="emit('update:metaImage', $event)"
+          :file-list="fileList"
+          @update:file-list="handleUploadChange"
           :max="1"
           list-type="image-card"
         />

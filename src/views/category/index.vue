@@ -17,6 +17,12 @@
               placeholder="Nhập tìm kiếm ..."
               v-model:value="searchQuery"
               @keyup.enter="searchData"
+              @clear="
+                () => {
+                  searchQuery = '';
+                  searchData();
+                }
+              "
             />
           </n-form-item>
           <ButtonSearch ref="buttonSearchRef" :searchData="loadCategories" />

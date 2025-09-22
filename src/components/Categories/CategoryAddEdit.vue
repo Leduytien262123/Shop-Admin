@@ -22,10 +22,12 @@ const categoryForm = ref({
   show_menu: false,
   show_home: false,
   show_footer: false,
-  meta_title: "",
-  meta_keywords: "",
-  meta_description: "",
-  meta_image: [],
+  metadata: {
+    meta_title: "",
+    meta_keywords: "",
+    meta_description: "",
+    meta_image: [],
+  },
 });
 
 const rules = {
@@ -80,10 +82,12 @@ async function loadCategory() {
         show_menu: response.data.data.show_menu,
         show_home: response.data.data.show_home,
         show_footer: response.data.data.show_footer,
-        meta_title: response.data.data.meta_title || "",
-        meta_keywords: response.data.data.meta_keywords || "",
-        meta_description: response.data.data.meta_description || "",
-        meta_image: response.data.data.meta_image || [],
+        metadata: {
+          meta_title: response.data.data.meta_title || "",
+          meta_keywords: response.data.data.meta_keywords || "",
+          meta_description: response.data.data.meta_description || "",
+          meta_image: response.data.data.meta_image || [],
+        },
       };
     }
   } catch (error) {
@@ -213,10 +217,10 @@ onMounted(() => {
           </n-form-item>
 
           <FormMeta
-            v-model:metaTitle="categoryForm.meta_title"
-            v-model:metaKeywords="categoryForm.meta_keywords"
-            v-model:metaDescription="categoryForm.meta_description"
-            v-model:metaImage="categoryForm.meta_image"
+            v-model:metaTitle="categoryForm.metadata.meta_title"
+            v-model:metaKeywords="categoryForm.metadata.meta_keywords"
+            v-model:metaDescription="categoryForm.metadata.meta_description"
+            v-model:metaImage="categoryForm.metadata.meta_image"
           />
         </n-form>
       </n-spin>

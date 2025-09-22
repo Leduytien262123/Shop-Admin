@@ -50,13 +50,13 @@ const rules = {
       trigger: ["blur", "input"],
     },
   ],
-  category_id: [
-    {
-      required: true,
-      message: "Vui lòng chọn danh mục",
-      trigger: ["blur", "change"],
-    },
-  ],
+  // category_id: [
+  //   {
+  //     required: true,
+  //     message: "Vui lòng chọn danh mục",
+  //     trigger: ["blur", "change"],
+  //   },
+  // ],
   price: [
     {
       required: true,

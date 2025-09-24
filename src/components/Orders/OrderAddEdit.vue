@@ -16,6 +16,11 @@ const products = ref([]);
 const loading = ref(false);
 const discounts = ref([]);
 
+// New: store selected product ids from the select component
+const selectedProductIds = ref([]);
+// New: map of product info by id (name, price)
+const productsMap = ref({});
+
 const productForm = ref({
   creator_id: userStore.userId,
   creator_name: userStore.username,
@@ -38,6 +43,11 @@ const status = [
   { label: "Hoàn thành", value: "completed" },
   { label: "Hủy", value: "canceled" },
 ];
+
+const statusLabel = computed(() => {
+  const s = status.find((o) => o.value === productForm.value.status);
+  return s ? s.label : productForm.value.status || "";
+});
 
 const paymentsMethod = [
   { label: "Chưa thanh toán", value: "unpaid" },
@@ -184,8 +194,13 @@ const rules = {
       required: true,
       type: "array",
       min: 1,
-      message: "Vui lòng chọn ít nhất 1 sản phẩm",
-      trigger: ["change"],
+      trigger: ["blur", "change"],
+      validator(rule, value) {
+        if (!Array.isArray(value) || value.length === 0) {
+          return new Error("Vui lòng chọn ít nhất 1 sản phẩm");
+        }
+        return true;
+      },
     },
   ],
 };
@@ -217,14 +232,19 @@ async function loadProducts() {
     loading.value = true;
     const params = {
       page: 1,
-      length: 10,
+      length: 1000,
     };
     const response = await api.getProducts(params);
-    products.value =
-      response.data?.data?.products.map((e) => ({
-        label: e.name,
-        value: e.id,
-      })) || [];
+    const list = response.data?.data?.products || [];
+    products.value = list.map((e) => ({ label: e.name, value: e.id }));
+    productsMap.value = {};
+    list.forEach((e) => {
+      productsMap.value[e.id] = {
+        id: e.id,
+        name: e.name,
+        price: e.price ?? e.sale_price ?? e.unit_price ?? 0,
+      };
+    });
   } catch (error) {
     $message.error("Không thể tải danh sách đơn hàng");
   } finally {
@@ -253,9 +273,16 @@ async function loadOrder() {
         status: d.status || null,
         payment_method: d.payment_method || null,
         order_type: d.order_type || null,
-        product_ids: d.products?.map((p) => p.id) || [],
+        product_ids:
+          (d.products || []).map((p) => ({
+            id: p.product_id ?? p.id,
+            name: p.name || p.product_name || "",
+            price: p.price ?? p.unit_price ?? 0,
+            quantity: p.quantity ?? 1,
+          })) || [],
       };
-      console.log("Loaded order:", productForm.value);
+
+      selectedProductIds.value = productForm.value.product_ids.map((p) => p.id);
     }
   } catch (error) {
     $message.error("Không thể tải thông tin đơn hàng");
@@ -277,8 +304,36 @@ onMounted(() => {
   }
 });
 
+watch(
+  selectedProductIds,
+  (newIds, oldIds) => {
+    const prev = productForm.value.product_ids || [];
+    const prevMap = {};
+    prev.forEach((p) => (prevMap[p.id] = p));
+
+    productForm.value.product_ids = (newIds || []).map((id) => {
+      const existing = prevMap[id];
+      if (existing) return existing;
+      const info = productsMap.value[id] || {};
+      return {
+        id,
+        name: info.name || "",
+        price: info.price || 0,
+        quantity: 1,
+      };
+    });
+  },
+  { deep: true }
+);
+
 function handleBack() {
   router.push("/order");
+}
+
+function removeProduct(index) {
+  productForm.value.product_ids.splice(index, 1);
+  // keep selectedProductIds in sync
+  selectedProductIds.value = productForm.value.product_ids.map((p) => p.id);
 }
 
 async function handleSave() {
@@ -286,7 +341,17 @@ async function handleSave() {
     await formRef.value?.validate();
 
     loading.value = true;
-    const body = { ...productForm.value, creator_id: userStore.userId };
+    const productsPayload = (productForm.value.product_ids || []).map((p) => ({
+      product_id: p.id,
+      quantity: p.quantity || 1,
+      price: p.price || 0,
+    }));
+
+    const body = {
+      ...productForm.value,
+      products: productsPayload,
+    };
+
     if (isEdit.value) {
       await api.updateOrder(props.id, body);
       $message.success("Cập nhật đơn hàng thành công!");
@@ -323,10 +388,9 @@ async function handleSave() {
         <n-grid cols="3" x-gap="16" y-gap="16">
           <n-grid-item span="1">
             <n-form-item label="Trạng thái" path="status">
-              <NaiveSelect
-                v-model:value="productForm.status"
-                :options="status"
-                :disabled="!isEdit"
+              <NaiveInput
+                :value="statusLabel"
+                readonly
                 placeholder="Chọn trạng thái"
               />
             </n-form-item>
@@ -342,7 +406,7 @@ async function handleSave() {
             </n-form-item>
           </n-grid-item>
 
-          <n-grid-item span="1">
+          <!-- <n-grid-item span="1">
             <n-form-item label="Loại đơn" path="order_type">
               <NaiveSelect
                 v-model:value="productForm.order_type"
@@ -351,7 +415,7 @@ async function handleSave() {
                 placeholder="Chọn loại đơn"
               />
             </n-form-item>
-          </n-grid-item>
+          </n-grid-item> -->
 
           <n-grid-item span="1">
             <n-form-item label="Người tạo" path="creator_name">
@@ -403,7 +467,7 @@ async function handleSave() {
             </n-form-item>
           </n-grid-item>
 
-          <n-grid-item span="2">
+          <n-grid-item span="3">
             <n-form-item label="Địa chỉ" path="address">
               <NaiveInput
                 v-model:value="productForm.address"
@@ -448,7 +512,7 @@ async function handleSave() {
           <n-grid-item span="2">
             <n-form-item label="Chọn sản phẩm" path="product_ids">
               <NaiveSelect
-                v-model:value="productForm.product_ids"
+                v-model:value="selectedProductIds"
                 :options="products"
                 filterable
                 placeholder="Chọn sản phẩm"
@@ -456,6 +520,37 @@ async function handleSave() {
               />
             </n-form-item>
           </n-grid-item>
+        </n-grid>
+
+        <!-- Render selected products with quantity and price, allow remove -->
+        <n-grid cols="5" x-gap="16" y-gap="16">
+          <template v-for="(p, idx) in productForm.product_ids" :key="p.id">
+            <n-grid-item :span="2">
+              <n-form-item label="Sản phẩm">
+                <NaiveInput v-model:value="p.name" readonly />
+              </n-form-item>
+            </n-grid-item>
+
+            <n-grid-item :span="1">
+              <n-form-item label="Số lượng">
+                <NaiveInputNumber v-model:value="p.quantity" :min="1" />
+              </n-form-item>
+            </n-grid-item>
+
+            <n-grid-item :span="2">
+              <n-form-item label="Đơn giá">
+                <NaiveInputNumber
+                  v-model:value="p.price"
+                  :money="true"
+                  :show-button="false"
+                  class="mr-16"
+                />
+                <n-button type="error" @click.prevent="removeProduct(idx)"
+                  >Xoá</n-button
+                >
+              </n-form-item>
+            </n-grid-item>
+          </template>
         </n-grid>
       </n-form>
 

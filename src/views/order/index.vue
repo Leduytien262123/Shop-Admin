@@ -237,6 +237,17 @@ const columns = [
     title: "Trạng thái",
     key: "status",
     ellipsis: true,
+    render(row) {
+      const opt = optionsStatus.value.find((o) => o.value === row.status);
+      const label = opt ? opt.label : row.status || "";
+      const type =
+        (row.status === "completed" && "success") ||
+        (row.status === "canceled" && "error") ||
+        (row.status === "processing" && "info") ||
+        (row.status === "pending" && "default") ||
+        "default";
+      return h(NTag, { type }, { default: () => label });
+    },
   },
   {
     title: "Thanh toán",

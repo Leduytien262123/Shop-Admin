@@ -18,10 +18,12 @@ const productForm = ref({
   description: "",
   price: null,
   discount_price: null,
-  meta_title: "",
-  meta_keywords: "",
-  meta_description: "",
-  meta_image: [],
+  metadata: {
+    meta_title: "",
+    meta_keywords: "",
+    meta_description: "",
+    meta_image: null,
+  },
 });
 
 const isEdit = computed(() => !!props.id);
@@ -146,10 +148,12 @@ async function loadProduct() {
         show_menu: response.data.data.show_menu,
         show_home: response.data.data.show_home,
         show_footer: response.data.data.show_footer,
-        meta_title: response.data.data.meta_title || "",
-        meta_keywords: response.data.data.meta_keywords || "",
-        meta_description: response.data.data.meta_description || "",
-        meta_image: response.data.data.meta_image || [],
+        metadata: {
+          meta_title: response.data.data.metadata?.meta_title || "",
+          meta_keywords: response.data.data.metadata?.meta_keywords || "",
+          meta_description: response.data.data.metadata?.meta_description || "",
+          meta_image: response.data.data.metadata?.meta_image,
+        },
       };
     }
   } catch (error) {
@@ -288,10 +292,10 @@ async function handleSave() {
         </n-grid>
 
         <FormMeta
-          v-model:metaTitle="productForm.meta_title"
-          v-model:metaKeywords="productForm.meta_keywords"
-          v-model:metaDescription="productForm.meta_description"
-          v-model:metaImage="productForm.meta_image"
+          v-model:metaTitle="productForm.metadata.meta_title"
+          v-model:metaKeywords="productForm.metadata.meta_keywords"
+          v-model:metaDescription="productForm.metadata.meta_description"
+          v-model:metaImage="productForm.metadata.meta_image"
         />
       </n-form>
 

@@ -114,13 +114,14 @@
           </n-grid>
         </div>
 
-        <n-spin :show="loading">
+        <div>
           <n-data-table
             :columns="columns"
             :data="orders"
             :bordered="true"
             :striped="true"
             :loading="loading"
+            :scroll-x="1300"
           />
           <Pagination
             :total="total"
@@ -130,7 +131,7 @@
             :pageSize="10"
             @change="loadOrders"
           />
-        </n-spin>
+        </div>
       </n-space>
     </n-card>
 
@@ -210,21 +211,18 @@ const columns = [
   },
   {
     title: "Mã đơn hàng",
-    key: "name",
+    key: "order_code",
     ellipsis: true,
+    width: 220,
   },
   {
     title: "Khách hàng",
-    key: "customer_name",
+    key: "name",
     ellipsis: true,
     render(row) {
       return h("div", {}, [
-        h("div", {}, row?.customer_name || ""),
-        h(
-          "div",
-          { style: "color: #888; font-size: 12px;" },
-          row?.customer_phone || ""
-        ),
+        h("div", {}, row?.name || ""),
+        h("div", { style: "color: #888; font-size: 12px;" }, row?.phone || ""),
       ]);
     },
   },
@@ -232,6 +230,16 @@ const columns = [
     title: "Loại đơn hàng",
     key: "type_order",
     ellipsis: true,
+    render(row) {
+      return h(
+        NTag,
+        { type: "info" },
+        {
+          default: () =>
+            row?.type_order === "web" ? "Đơn web" : "Đơn khách lẻ",
+        }
+      );
+    },
   },
   {
     title: "Trạng thái",
@@ -252,7 +260,20 @@ const columns = [
   {
     title: "Thanh toán",
     key: "payment_status",
+    width: 150,
     ellipsis: true,
+    render(row) {
+      const opt = optionsPayment.value.find(
+        (o) => o.value === row.payment_method
+      );
+      const label = opt ? opt.label : row.payment_method || "";
+      const type =
+        (row.payment_method === "paid" && "success") ||
+        (row.payment_method === "refunded" && "error") ||
+        (row.payment_method === "unpaid" && "default") ||
+        "default";
+      return h(NTag, { type }, { default: () => label });
+    },
   },
   {
     title: "Ngày tạo",
@@ -269,8 +290,10 @@ const columns = [
   {
     title: "Hành động",
     key: "actions",
+    width: 180,
+    fixed: "right",
     render(row) {
-      return h("div", { class: "flex gap-2" }, [
+      return h("div", { class: "flex gap-8" }, [
         h(
           NButton,
           { size: "small", onClick: () => viewOrder(row.id) },
@@ -342,7 +365,7 @@ async function loadOrders() {
     const response = await api.getOrders(params);
     if (response.data.success) {
       orders.value = response.data?.data?.orders || [];
-      loading.value = false;
+      total.value = response.data?.data?.total || 0;
     }
   } catch (error) {
     $message.error("Không thể tải danh sách đơn hàng");
@@ -359,7 +382,6 @@ async function viewOrder(id) {
   try {
     const response = await api.getOrderById(id);
     dataDetail.value = response.data?.data || null;
-    total.value = response.data?.data?.total || 0;
   } catch (error) {
     $message.error("Không thể tải chi tiết đơn hàng");
   }

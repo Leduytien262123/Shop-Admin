@@ -24,7 +24,7 @@ const productsMap = ref({});
 const productForm = ref({
   creator_id: userStore.userId,
   creator_name: userStore.username,
-  customer_name: "",
+  name: "",
   phone: "",
   email: "",
   address: "",
@@ -39,6 +39,7 @@ const productForm = ref({
 
 const status = [
   { label: "Đơn hàng mới", value: "new" },
+  { label: "Chờ xử lý", value: "pending" },
   { label: "Đang xử lý", value: "processing" },
   { label: "Hoàn thành", value: "completed" },
   { label: "Hủy", value: "canceled" },
@@ -54,11 +55,6 @@ const paymentsMethod = [
   { label: "Đã thanh toán", value: "paid" },
 ];
 
-const orderTypes = [
-  { label: "Đơn khách lẻ", value: "retail" },
-  { label: "Đơn web", value: "web", disabled: !isEdit.value },
-];
-
 const rules = {
   creator_name: [
     {
@@ -67,7 +63,7 @@ const rules = {
       trigger: ["blur", "input"],
     },
   ],
-  customer_name: [
+  name: [
     {
       required: true,
       trigger: ["blur", "input"],
@@ -263,7 +259,7 @@ async function loadOrder() {
       productForm.value = {
         creator_id: d.creator_id || userStore.userId,
         creator_name: d.creator_name || userStore.username,
-        customer_name: d.customer?.name || "",
+        name: d.customer?.name || "",
         phone: d.customer?.phone || "",
         email: d.customer?.email || "",
         address: d.info_order?.address || "",
@@ -347,8 +343,9 @@ async function handleSave() {
       price: p.price || 0,
     }));
 
+    const { product_ids, ...rest } = productForm.value;
     const body = {
-      ...productForm.value,
+      ...rest,
       products: productsPayload,
     };
 
@@ -428,9 +425,9 @@ async function handleSave() {
           </n-grid-item>
 
           <n-grid-item span="1">
-            <n-form-item label="Tên khách hàng" path="customer_name">
+            <n-form-item label="Tên khách hàng" path="name">
               <NaiveInput
-                v-model:value="productForm.customer_name"
+                v-model:value="productForm.name"
                 placeholder="Nhập tên khách hàng"
               />
             </n-form-item>
@@ -544,6 +541,7 @@ async function handleSave() {
                   :money="true"
                   :show-button="false"
                   class="mr-16"
+                  readonly
                 />
                 <n-button type="error" @click.prevent="removeProduct(idx)"
                   >Xoá</n-button

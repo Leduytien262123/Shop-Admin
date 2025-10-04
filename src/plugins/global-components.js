@@ -12,6 +12,14 @@ import NaiveDatePicker from "@/components/Base/NaiveDatePicker.vue";
 import NaiveInputNumber from "@/components/Base/NaiveInputNumber.vue";
 import BaseAddReload from "@/components/Base/AddReload.vue";
 import BaseButtonBack from "@/components/Base/ButtonBack.vue";
+import UpdateAddress from "@/components/Base/UpdateAddress.vue";
+
+import IconX from "@/components/icon/X.vue";
+import IconPencil from "@/components/icon/Pencil.vue";
+import IconBin from "@/components/icon/Bin.vue";
+import IconStart from "@/components/icon/Start.vue";
+import IconPause from "@/components/icon/Pause.vue";
+import IconDeleteModal from "@/components/icon/DeleteModal.vue";
 
 export function setupGlobalComponents(app) {
   const components = {
@@ -29,6 +37,14 @@ export function setupGlobalComponents(app) {
     NaiveInputNumber,
     BaseAddReload,
     BaseButtonBack,
+    UpdateAddress,
+
+    IconX,
+    IconPencil,
+    IconBin,
+    IconStart,
+    IconPause,
+    IconDeleteModal,
   };
 
   Object.entries(components).forEach(([name, comp]) => {

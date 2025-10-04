@@ -271,6 +271,15 @@ export const basicRoutes = [
   },
 
   {
+    name: "profile",
+    path: "/profile",
+    component: () => import("@/views/profile/index.vue"),
+    meta: {
+      title: "Hồ sơ cá nhân",
+    },
+  },
+
+  {
     name: "404",
     path: "/404",
     component: () => import("@/views/error-page/404.vue"),

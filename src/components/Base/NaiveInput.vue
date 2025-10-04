@@ -15,7 +15,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["update:value", "update:slug"]);
+const emit = defineEmits(["update:value", "update:slug", "clear"]);
 
 function generateSlug(name) {
   return name
@@ -65,5 +65,16 @@ watch(
 </script>
 
 <template>
-  <n-input :value="value" @update:value="handleInput" @blur="handleBlur" />
+  <n-input
+    :value="value"
+    @update:value="handleInput"
+    @blur="handleBlur"
+    clearable
+    @clear="
+      () => {
+        emit('clear');
+        emit('update:value', '');
+      }
+    "
+  />
 </template>

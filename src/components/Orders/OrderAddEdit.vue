@@ -14,6 +14,7 @@ const userStore = useUserStore();
 const isEdit = computed(() => !!props.id);
 const products = ref([]);
 const loading = ref(false);
+const loadingDiscount = ref(false);
 const discounts = ref([]);
 
 // New: store selected product ids from the select component
@@ -28,6 +29,7 @@ const productForm = ref({
   phone: "",
   email: "",
   address: "",
+  addresses: [],
   note: "",
   discount_code: null,
   shipping_fee: null,
@@ -174,15 +176,18 @@ const rules = {
       required: true,
       trigger: ["blur", "input"],
       validator(rule, value) {
-        const address = String(value || "").trim();
-        if (!address) return new Error("Vui lòng nhập địa chỉ");
-        if (address.length < 10)
-          return new Error("Địa chỉ phải có ít nhất 10 ký tự");
-        if (address.length > 255)
+        const address = productForm.value.address;
+        if (!address) {
+          return new Error("Vui lòng nhập địa chỉ");
+        }
+        if (address.length < 20) {
+          return new Error("Địa chỉ phải có ít nhất 20 ký tự");
+        }
+        if (address.length > 255) {
           return new Error("Địa chỉ không được quá 255 ký tự");
+        }
         return true;
       },
-      trigger: ["blur", "input"],
     },
   ],
   product_ids: [
@@ -222,6 +227,7 @@ watch(
 );
 
 const formRef = ref(null);
+const updateAddressRef = ref(null);
 
 async function loadProducts() {
   try {
@@ -248,6 +254,32 @@ async function loadProducts() {
   }
 }
 
+async function loadDiscounts() {
+  try {
+    loadingDiscount.value = true;
+    const params = {
+      page: 1,
+      length: 1000,
+      status: "active",
+    };
+    const response = await api.getDiscounts(params);
+    const list = response.data?.data?.discounts || [];
+    discounts.value = list.map((e) => ({ label: e.name, value: e.id }));
+    productsMap.value = {};
+    list.forEach((e) => {
+      productsMap.value[e.id] = {
+        id: e.id,
+        name: e.name,
+        discount: e.discount ?? 0,
+      };
+    });
+  } catch (error) {
+    $message.error("Không thể tải mã giảm giá");
+  } finally {
+    loadingDiscount.value = false;
+  }
+}
+
 async function loadOrder() {
   if (!props.id) return;
 
@@ -262,7 +294,7 @@ async function loadOrder() {
         name: d.customer?.name || "",
         phone: d.customer?.phone || "",
         email: d.customer?.email || "",
-        address: d.info_order?.address || "",
+        addresses: d.addresses?.map((a) => a.address) || [""],
         note: d.info_order?.note || "",
         discount_code: d.discount_code || null,
         shipping_fee: d.shipping_fee || null,
@@ -295,6 +327,7 @@ onMounted(() => {
     productForm.value.creator_name = userStore.username;
   }
   loadProducts();
+  loadDiscounts();
   if (isEdit.value) {
     loadOrder();
   }
@@ -328,13 +361,28 @@ function handleBack() {
 
 function removeProduct(index) {
   productForm.value.product_ids.splice(index, 1);
-  // keep selectedProductIds in sync
   selectedProductIds.value = productForm.value.product_ids.map((p) => p.id);
+}
+
+function handleAddressChange(val) {
+  productForm.value.address = val;
 }
 
 async function handleSave() {
   try {
     await formRef.value?.validate();
+
+    if (updateAddressRef.value && !updateAddressRef.value.handleSaveRequest()) {
+      return;
+    }
+
+    if (
+      productForm.value.addresses.length === 0 ||
+      !productForm.value.addresses[0].trim()
+    ) {
+      $message.error("Vui lòng nhập địa chỉ");
+      return;
+    }
 
     loading.value = true;
     const productsPayload = (productForm.value.product_ids || []).map((p) => ({
@@ -466,9 +514,12 @@ async function handleSave() {
 
           <n-grid-item span="3">
             <n-form-item label="Địa chỉ" path="address">
-              <NaiveInput
-                v-model:value="productForm.address"
-                placeholder="Nhập địa chỉ"
+              <UpdateAddress
+                ref="updateAddressRef"
+                :isDisabled="productForm.status !== 'pending'"
+                :addresses="productForm.addresses"
+                @update:addresses="productForm.addresses = $event"
+                @input-address-change="handleAddressChange"
               />
             </n-form-item>
           </n-grid-item>

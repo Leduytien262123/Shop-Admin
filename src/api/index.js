@@ -56,6 +56,9 @@ export default {
   updateDiscount: (id, data) =>
     request.put(`/api/admin/manage/discount/${id}`, data),
   deleteDiscount: (id) => request.delete(`/api/admin/manage/discount/${id}`),
+  pauseDiscount: (id) => request.put(`/api/admin/manage/discount/${id}/pause`),
+  resumeDiscount: (id) =>
+    request.put(`/api/admin/manage/discount/${id}/resume`),
 
   // BlogCategories APIs
   getBlogCategories: (params = {}) =>
@@ -86,7 +89,7 @@ export default {
   // User Management APIs (Admin)
   getUsers: (params = {}) => request.get("/api/admin/manage/users", { params }),
   createUser: (data) => request.post("/api/admin/manage/user", data),
-  getUserById: (id, data) => request.put(`/api/admin/manage/user/${id}`, data),
+  getUserById: (id, data) => request.get(`/api/admin/manage/user/${id}`, data),
   updateUser: (id, data) => request.put(`/api/admin/manage/user/${id}`, data),
   deleteUser: (id) => request.delete(`/api/admin/manage/user/${id}`),
   resetUserPassword: (id, data) =>

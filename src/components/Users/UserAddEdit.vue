@@ -9,19 +9,24 @@ const props = defineProps({
 });
 
 const router = useRouter();
+const route = useRoute();
 const userStore = useUserStore();
-
+const context = computed(() => {
+  if (route.path.includes("staff")) return "nhân sự";
+  if (route.path.includes("user")) return "khách hàng";
+});
 const isEdit = computed(() => !!props.id);
 const loading = ref(false);
 
 const userForm = ref({
+  role: null,
   creator_id: userStore.userId,
   creator_name: userStore.username,
   full_name: "",
   phone: "",
   email: "",
   address: "",
-  note: "",
+  addresses: [""],
   avatar: null,
 });
 
@@ -39,11 +44,11 @@ const rules = {
       trigger: ["blur", "input"],
       validator(rule, value) {
         const name = String(value || "").trim();
-        if (!name) return new Error("Vui lòng nhập tên khách hàng");
+        if (!name) return new Error(`Vui lòng nhập tên ${context.value}`);
         if (name.length < 10)
-          return new Error("Tên khách hàng phải có ít nhất 10 ký tự");
+          return new Error(`Tên ${context.value} phải có ít nhất 10 ký tự`);
         if (name.length > 100)
-          return new Error("Tên khách hàng không được quá 100 ký tự");
+          return new Error(`Tên ${context.value} không được quá 100 ký tự`);
         return true;
       },
       trigger: ["blur", "input"],
@@ -144,15 +149,18 @@ const rules = {
       required: true,
       trigger: ["blur", "input"],
       validator(rule, value) {
-        const address = String(value || "").trim();
-        if (!address) return new Error("Vui lòng nhập địa chỉ");
-        if (address.length < 20)
+        const address = userForm.value.address;
+        if (!address) {
+          return new Error("Vui lòng nhập địa chỉ");
+        }
+        if (address.length < 20) {
           return new Error("Địa chỉ phải có ít nhất 20 ký tự");
-        if (address.length > 255)
+        }
+        if (address.length > 255) {
           return new Error("Địa chỉ không được quá 255 ký tự");
+        }
         return true;
       },
-      trigger: ["blur", "input"],
     },
   ],
 };
@@ -178,6 +186,7 @@ watch(
 );
 
 const formRef = ref(null);
+const updateAddressRef = ref(null);
 
 async function loadUser() {
   if (!props.id) return;
@@ -188,18 +197,18 @@ async function loadUser() {
     if (response.data.success) {
       const d = response.data.data;
       userForm.value = {
+        role: d.role || null,
         creator_id: d.creator_id,
         creator_name: d.creator_name,
         full_name: d.full_name || "",
         phone: d.phone || "",
         email: d.email || "",
-        address: d.address || "",
-        note: d.note || "",
+        addresses: d.addresses?.map((a) => a.address) || [""],
         avatar: d.avatar || null,
       };
     }
   } catch (error) {
-    $message.error("Không thể tải thông tin khách hàng");
+    $message.error(`Không thể tải thông tin ${context.value}`);
     console.error("Load order error:", error);
   } finally {
     loading.value = false;
@@ -218,21 +227,40 @@ onMounted(() => {
 });
 
 function handleBack() {
-  router.push("/user");
+  if (route.path.includes("staff")) {
+    return router.push("/staff");
+  } else return router.push("/user");
 }
 
 async function handleSave() {
   try {
     await formRef.value?.validate();
 
+    if (updateAddressRef.value && !updateAddressRef.value.handleSaveRequest()) {
+      return;
+    }
+
+    if (
+      userForm.value.addresses.length === 0 ||
+      !userForm.value.addresses[0].trim()
+    ) {
+      $message.error("Vui lòng nhập địa chỉ");
+      return;
+    }
+
     loading.value = true;
-    const body = { ...userForm.value, creator_id: userStore.userId };
+
+    const body = {
+      ...userForm.value,
+      creator_id: userStore.userId,
+      addresses: userForm.value.addresses.filter((addr) => addr.trim() !== ""),
+    };
     if (isEdit.value) {
-      await api.updateOrder(props.id, body);
-      $message.success("Cập nhật khách hàng thành công!");
+      await api.updateUser(props.id, body);
+      $message.success(`Cập nhật ${context.value} thành công!`);
     } else {
-      await api.createOrder(body);
-      $message.success("Thêm khách hàng thành công!");
+      await api.createUser(body);
+      $message.success(`Thêm ${context.value} thành công!`);
     }
 
     handleBack();
@@ -242,8 +270,8 @@ async function handleSave() {
     }
 
     const errorMessage = isEdit.value
-      ? "Cập nhật khách hàng thất bại"
-      : "Thêm khách hàng thất bại";
+      ? `Cập nhật ${context.value} thất bại`
+      : `Thêm ${context.value} thất bại`;
     $message.error(errorMessage);
     console.error("Save order error:", error);
   } finally {
@@ -257,12 +285,10 @@ function handleInput() {
       .trim()
       .replace(/\s+/g, " ");
   }
-  if (userForm.value.address) {
-    userForm.value.address = userForm.value.address.trim().replace(/\s+/g, " ");
-  }
-  if (userForm.value.note) {
-    userForm.value.note = userForm.value.note.trim().replace(/\s+/g, " ");
-  }
+}
+
+function handleAddressChange(val) {
+  userForm.value.address = val;
 }
 </script>
 
@@ -272,15 +298,15 @@ function handleInput() {
       <ButtonBack :handleBack />
     </template>
 
-    <n-card :title="isEdit ? 'Sửa khách hàng' : 'Thêm khách hàng'">
+    <n-card :title="isEdit ? `Sửa ${context}` : `Thêm ${context}`">
       <n-form :model="userForm" :rules="rules" ref="formRef">
         <n-grid cols="3" x-gap="16" y-gap="16">
           <n-grid-item span="1">
-            <n-form-item label="Tên khách hàng" path="full_name">
+            <n-form-item :label="`Tên ${context}`" path="full_name">
               <NaiveInput
                 v-model:value="userForm.full_name"
                 @blur="handleInput"
-                placeholder="Nhập tên khách hàng"
+                :placeholder="`Nhập tên ${context}`"
               />
             </n-form-item>
           </n-grid-item>
@@ -313,21 +339,15 @@ function handleInput() {
           </n-grid-item>
 
           <n-grid-item span="3">
-            <n-form-item label="Địa chỉ" path="address">
-              <NaiveInput
-                v-model:value="userForm.address"
-                @blur="handleInput"
-                placeholder="Nhập địa chỉ"
-              />
-            </n-form-item>
-          </n-grid-item>
-
-          <n-grid-item span="3">
-            <n-form-item label="Ghi chú" path="note">
-              <NaiveInput
-                v-model:value="userForm.note"
-                @blur="handleInput"
-                placeholder="Ghi chú"
+            <n-form-item
+              label="Địa chỉ"
+              :path="userForm.role === 'owner' ? '' : 'address'"
+            >
+              <UpdateAddress
+                ref="updateAddressRef"
+                :addresses="userForm.addresses"
+                @update:addresses="userForm.addresses = $event"
+                @input-address-change="handleAddressChange"
               />
             </n-form-item>
           </n-grid-item>

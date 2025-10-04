@@ -1,5 +1,5 @@
 <script setup>
-import UserAddEdit from "@/components/Staff/UserAddEdit.vue";
+import UserAddEdit from "@/components/Users/UserAddEdit.vue";
 </script>
 
 <template>

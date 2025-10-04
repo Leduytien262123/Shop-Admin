@@ -77,8 +77,7 @@ const updateAlt = (index, value) => {
       @remove="handleRemove"
       @preview="handlePreview"
       class="max-w-[100px]"
-    >
-    </n-upload>
+    />
     <div v-if="fileList && fileList.length > 0" class="w-full">
       <div class="w-full flex flex-col gap-12px">
         <div

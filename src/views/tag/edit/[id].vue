@@ -1,8 +1,8 @@
 <script setup>
 const route = useRoute();
-import StaffAddEdit from "@/components/Tags/StaffAddEdit.vue";
+import TagAddEdit from "@/components/Tags/TagAddEdit.vue";
 </script>
 
 <template>
-  <StaffAddEdit :id="route?.params?.id" />
+  <TagAddEdit :id="route?.params?.id" />
 </template>

@@ -11,26 +11,26 @@
           <div ref="modalContent">
             <div v-if="data" class="text-14 text-gray-700 space-y-4xl">
               <div class=""><b>Tên:</b> {{ data?.name }}</div>
-              <hr />
+              <hr >
               <div class=""><b>Slug:</b> {{ data?.slug }}</div>
-              <hr />
+              <hr >
               <div class=""><b>Mô tả:</b> {{ data?.description }}</div>
-              <hr />
+              <hr >
               <div class=""><b>Trạng thái:</b> {{ data?.is_active ? 'Hoạt động' : 'Dừng hoạt động' }}</div>
-              <hr />
+              <hr >
               <div class=""><b>Ngày tạo:</b> {{ formatDate(data?.created_at) }}</div>
-              <hr />
+              <hr >
               <div class=""><b>Ngày cập nhật:</b> {{ formatDate(data?.updated_at) }}</div>
-              <hr />
+              <hr >
               <div class=""><b>Meta Title:</b> {{ data?.metadata?.meta_title }}</div>
-              <hr />
+              <hr >
               <div class=""><b>Meta Keywords:</b> {{ data?.metadata?.meta_keywords }}</div>
-              <hr />
+              <hr >
               <div class=""><b>Meta Description:</b> {{ data?.metadata?.meta_description }}</div>
-              <hr />
+              <hr >
               <div class="flex flex-col">
                 <b>Meta Image:</b>
-                  <img v-if="data?.metadata?.meta_image" :src="data?.metadata?.meta_image || ''" class="w-100 h-auto rounded-lg" />
+                  <img v-if="data?.metadata?.meta_image" :src="data?.metadata?.meta_image || ''" class="w-100 h-auto rounded-lg" >
               </div>
             </div>
             <div v-else>Không có dữ liệu</div>

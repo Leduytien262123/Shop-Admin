@@ -2,7 +2,7 @@
 const props = defineProps({
   searchData: {
     type: Function,
-    required: true,
+    required: false,
   },
 });
 

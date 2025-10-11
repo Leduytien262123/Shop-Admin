@@ -179,13 +179,22 @@ function handleSaveRequest() {
 defineExpose({
   handleSaveRequest,
 });
+
+watch(
+  () => optionAddress.value,
+  (newAddresses) => {
+    if (newAddresses.length === 0) {
+      selectedAddressIndex.value = null;
+    }
+  }
+);
 </script>
 
 <template>
   <div class="flex flex-col w-full gap-16">
     <div v-if="!isAddingNewAddress" class="flex gap-16">
       <NaiveSelect
-        v-model:value="selectedAddressIndex"
+        :value="optionAddress.length === 0 ? null : selectedAddressIndex"
         :options="optionAddress"
         placeholder="Chọn địa chỉ"
         @update:value="handleAddressSelect"

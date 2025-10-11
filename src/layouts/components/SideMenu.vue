@@ -128,11 +128,11 @@ const menuOptions = computed(() => [
         key: "tag",
         path: "/tag",
       },
-      {
-        label: "FAQ",
-        key: "faq",
-        path: "/faq",
-      },
+      // {
+      //   label: "FAQ",
+      //   key: "faq",
+      //   path: "/faq",
+      // },
     ],
   },
   {

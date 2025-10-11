@@ -2,7 +2,11 @@
   <AppPage show-footer>
     <n-card>
       <n-space align="center">
-        <n-avatar round :size="100" :src="userStore?.avatar || 'userEmpty'" />
+        <n-avatar
+          round
+          :size="100"
+          :src="userStore?.avatar?.url || 'userEmpty'"
+        />
         <div class="ml-20">
           <div class="flex items-center text-16">
             <span>Tên người dùng:</span>

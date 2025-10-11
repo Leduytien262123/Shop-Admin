@@ -2,19 +2,20 @@
 const props = defineProps({
   metaTitle: {
     type: String,
-    required: true,
+    required: false,
   },
   metaKeywords: {
     type: String,
-    required: true,
+    required: false,
   },
   metaDescription: {
     type: String,
-    required: true,
+    required: false,
   },
   metaImage: {
-    type: Object,
-    required: true,
+    type: Array,
+    required: false,
+    default: () => [],
   },
 });
 
@@ -25,19 +26,63 @@ const emit = defineEmits([
   "update:metaImage",
 ]);
 
-const fileList = ref(props.metaImage ? [props.metaImage] : []);
+function mapToMetaImages(list) {
+  return (list || []).map((f) => ({
+    url: f.url || f.thumbUrl || "",
+    alt: f.alt || f.name || "",
+  }));
+}
 
-function handleUploadChange(newFileList) {
-  const file = newFileList[0];
-  if (file) {
-    const url = file.url || (file.response && file.response.url) || "";
-    const alt = file.name || "";
-    const imageObj = { url, alt };
-    emit("update:metaImage", imageObj);
-    fileList.value = [imageObj];
+function mapToFileList(list) {
+  return (list || []).map((f, idx) => ({
+    url: f.url || f.thumbUrl || "",
+    thumbUrl: f.url || f.thumbUrl || "",
+    alt: f.alt || f.name || "",
+    uid: f.uid || `meta-${Date.now()}-${idx}`,
+    name: f.name || f.alt || `image-${idx}`,
+    status: f.status || "finished",
+  }));
+}
+
+const fileList = ref(mapToFileList(props.metaImage || []));
+
+watch(
+  () => props.metaImage,
+  (newVal) => {
+    if (
+      JSON.stringify(mapToMetaImages(newVal)) !==
+      JSON.stringify(mapToMetaImages(fileList.value))
+    ) {
+      fileList.value = mapToFileList(newVal || []);
+    }
+  },
+  { deep: true }
+);
+
+function handleUploadSuccess(file) {
+  const imageObj = {
+    url: file.url || file.thumbUrl || "",
+    alt: file.alt || file.name || "",
+    uid: file.uid || `meta-${Date.now()}`,
+    name: file.name || file.alt || "",
+    status: "finished",
+  };
+  fileList.value = [imageObj];
+  emit("update:metaImage", mapToMetaImages(fileList.value));
+}
+
+// Xử lý khi xóa file
+function handleRemove() {
+  fileList.value = [];
+  emit("update:metaImage", []);
+}
+
+function handleUpdateFileList(newFileList) {
+  fileList.value = newFileList;
+  if (newFileList.length === 0) {
+    emit("update:metaImage", []);
   } else {
-    emit("update:metaImage", null);
-    fileList.value = [];
+    emit("update:metaImage", mapToMetaImages(newFileList));
   }
 }
 </script>
@@ -78,9 +123,10 @@ function handleUploadChange(newFileList) {
       <n-form-item label="Meta Image">
         <NaiveUpload
           :file-list="fileList"
-          @update:file-list="handleUploadChange"
           :max="1"
-          list-type="image-card"
+          @update:file-list="handleUpdateFileList"
+          @upload-success="handleUploadSuccess"
+          @remove="handleRemove"
         />
       </n-form-item>
     </n-collapse-item>

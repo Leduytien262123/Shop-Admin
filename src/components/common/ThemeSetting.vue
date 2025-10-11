@@ -11,16 +11,18 @@
           :render-label="() => ''"
         />
       </template>
-      设置主题色
+      Đặt màu chủ đề
     </n-tooltip>
   </div>
 </template>
 
 <script setup>
-import { getPresetColors } from '@arco-design/color'
-import { useAppStore } from '@/store'
+import { getPresetColors } from "@arco-design/color";
+import { useAppStore } from "@/store";
 
-const appStore = useAppStore()
+const appStore = useAppStore();
 
-const primaryColors = Object.entries(getPresetColors()).map(([, value]) => value.primary)
+const primaryColors = Object.entries(getPresetColors()).map(
+  ([, value]) => value.primary
+);
 </script>

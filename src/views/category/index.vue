@@ -28,23 +28,21 @@
           <ButtonSearch ref="buttonSearchRef" :searchData="loadCategories" />
         </div>
 
-        <n-spin :show="loading">
-          <n-data-table
-            :columns="columns"
-            :data="categories"
-            :bordered="true"
-            :striped="true"
-            :loading="loading"
-          />
-          <Pagination
-            :total="total"
-            :page="1"
-            :limit="10"
-            :name="'danh mục'"
-            :pageSize="10"
-            @change="loadCategories"
-          />
-        </n-spin>
+        <n-data-table
+          :columns="columns"
+          :data="categories"
+          :bordered="true"
+          :striped="true"
+          :loading="loading"
+        />
+        <Pagination
+          :total="total"
+          :page="1"
+          :limit="10"
+          :name="'danh mục'"
+          :pageSize="10"
+          @change="loadCategories"
+        />
       </n-space>
     </n-card>
 

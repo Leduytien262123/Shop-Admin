@@ -16,20 +16,20 @@ const isEdit = computed(() => !!props.id);
 
 const blogCategoryForm = ref({
   name: "",
-  description: null,
+  display_order: null,
   slug: "",
   is_active: true,
-  show_menu: false,
-  show_home: false,
-  show_footer: false,
-  meta_title: "",
-  meta_keywords: "",
-  meta_description: "",
-  meta_image: [],
+  metadata: {
+    meta_title: "",
+    meta_keywords: "",
+    meta_description: "",
+    meta_image: [],
+  },
   content: {
     cover_photo: [],
     images: [],
     description: "",
+    content: "",
   },
 });
 
@@ -50,26 +50,6 @@ const rules = {
   ],
 };
 
-function generateSlug(name) {
-  return name
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .trim("-");
-}
-
-watch(
-  () => blogCategoryForm.value.name,
-  (newName) => {
-    if (newName) {
-      blogCategoryForm.value.slug = generateSlug(newName);
-    }
-  }
-);
-
 async function loadBlogCategory() {
   if (!props.id) return;
 
@@ -78,37 +58,25 @@ async function loadBlogCategory() {
     const response = await api.getBlogCategoryById(props.id);
     if (response.data.success) {
       const data = response.data.data;
+      console.log("Blog category response:", data);
+
       blogCategoryForm.value = {
         name: data.name || "",
-        description: data.description || null,
         slug: data.slug || "",
+        display_order: data.display_order || null,
         is_active: data.is_active,
-        show_menu: data.show_menu,
-        show_home: data.show_home,
-        show_footer: data.show_footer,
-        meta_title: data.meta_title || "",
-        meta_keywords: data.meta_keywords || "",
-        meta_description: data.meta_description || "",
-        meta_image: data.meta_image
-          ? Array.isArray(data.meta_image)
-            ? data.meta_image.map((img) => ({
-                url_file: img.url_file || img.url || img,
-                alt: img.alt || data.alt || "",
-              }))
-            : [{ url_file: data.meta_image, alt: data.alt || "" }]
-          : [],
-        cover_photo: data.cover_photo
-          ? [{ url_file: data.cover_photo, alt: data.alt || "" }]
-          : [],
-        images: data.images
-          ? Array.isArray(data.images)
-            ? data.images.map((img) => ({
-                url_file: img.url_file || img.url || img,
-                alt: img.alt || data.alt || "",
-              }))
-            : [{ url_file: data.images, alt: data.alt || "" }]
-          : [],
-        alt: data.alt || "",
+        metadata: {
+          meta_title: data.metadata?.meta_title || "",
+          meta_keywords: data.metadata?.meta_keywords || "",
+          meta_description: data.metadata?.meta_description || "",
+          meta_image: data.metadata?.meta_image || [],
+        },
+        content: {
+          cover_photo: data.content?.cover_photo,
+          images: data.content?.images,
+          description: data.content?.description || "",
+          content: data.content?.content || "",
+        },
       };
     }
   } catch (error) {
@@ -123,10 +91,10 @@ function normalizeImageField(field) {
   if (!Array.isArray(field)) return [];
   return field.map((img) => {
     if (typeof img === "string") {
-      return { url_file: img, alt: "" };
+      return { url: img, alt: "" };
     }
     return {
-      url_file: img.url_file || img.url || "",
+      url: img.url || img.url_file || "",
       alt: img.alt || "",
     };
   });
@@ -140,20 +108,8 @@ async function handleSave() {
   try {
     await formRef.value?.validate();
     loading.value = true;
-    // Chuẩn hóa body gửi lên
     const body = {
       ...blogCategoryForm.value,
-      meta_image:
-        blogCategoryForm.value.meta_image &&
-        blogCategoryForm.value.meta_image.length > 0
-          ? normalizeImageField(blogCategoryForm.value.meta_image)[0]
-          : null,
-      cover_photo:
-        blogCategoryForm.value.cover_photo &&
-        blogCategoryForm.value.cover_photo.length > 0
-          ? normalizeImageField(blogCategoryForm.value.cover_photo)[0]
-          : null,
-      images: normalizeImageField(blogCategoryForm.value.images),
     };
     if (isEdit.value) {
       await api.updateBlogCategory(props.id, body);
@@ -173,7 +129,9 @@ async function handleSave() {
     $message.error(errorMessage);
     console.error("Save category error:", error);
   } finally {
-    loading.value = false;
+    setTimeout(() => {
+      loading.value = false;
+    }, 1000);
   }
 }
 
@@ -224,7 +182,7 @@ onMounted(() => {
             <n-grid-item span="1">
               <n-form-item label="Số thứ tự hiển thị">
                 <NaiveInputNumber
-                  v-model:value="blogCategoryForm.description"
+                  v-model:value="blogCategoryForm.display_order"
                   placeholder="Nhập số thứ tự hiển thị"
                   class="w-full"
                 />
@@ -233,10 +191,12 @@ onMounted(() => {
 
             <n-grid-item span="3">
               <FormMeta
-                v-model:metaTitle="blogCategoryForm.meta_title"
-                v-model:metaKeywords="blogCategoryForm.meta_keywords"
-                v-model:metaDescription="blogCategoryForm.meta_description"
-                v-model:metaImage="blogCategoryForm.meta_image"
+                v-model:metaTitle="blogCategoryForm.metadata.meta_title"
+                v-model:metaKeywords="blogCategoryForm.metadata.meta_keywords"
+                v-model:metaDescription="
+                  blogCategoryForm.metadata.meta_description
+                "
+                v-model:metaImage="blogCategoryForm.metadata.meta_image"
               />
             </n-grid-item>
 
@@ -246,6 +206,7 @@ onMounted(() => {
                 v-model:coverPhoto="blogCategoryForm.content.cover_photo"
                 v-model:images="blogCategoryForm.content.images"
                 v-model:description="blogCategoryForm.content.description"
+                v-model:content="blogCategoryForm.content.content"
               />
             </n-grid-item>
           </n-grid>
@@ -257,6 +218,8 @@ onMounted(() => {
           :isEdit="isEdit"
           :handleBack="handleBack"
           :handleSave="handleSave"
+          :loading="loading"
+          :disabled="loading"
         />
       </template>
     </n-card>

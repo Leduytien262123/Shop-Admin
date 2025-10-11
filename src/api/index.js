@@ -1,6 +1,125 @@
 import { request } from "@/utils";
 
+// S3 Upload Class
+class UploadToS3 {
+  constructor() {
+    this.currentRequest = null;
+  }
+
+  async getUrlUpload(
+    filename,
+    contentEncoding = "blob",
+    contentType = "image/jpeg"
+  ) {
+    const data = {
+      key: filename,
+      content_encoding: contentEncoding,
+      content_type: contentType,
+    };
+    return request.post("/api/admin/manage/upload/s3", data);
+  }
+
+  async upload(
+    filename,
+    data,
+    { contentEncoding = "blob", contentType = "image/jpeg" } = {},
+    onProgressCallback = null
+  ) {
+    try {
+      const response = await this.getUrlUpload(
+        filename,
+        contentEncoding,
+        contentType
+      );
+
+      const url = response.data?.data?.upload_url;
+      const directUrl = response.data?.data?.direct_url;
+
+      if (!directUrl) {
+        throw new Error("Failed to get upload URL");
+      }
+
+      let buf;
+      switch (contentEncoding) {
+        case "base64":
+          const binaryString = atob(
+            data.replace(/^data:image\/\w+;base64,/, "")
+          );
+          const len = binaryString.length;
+          const bytes = new Uint8Array(len);
+          for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          buf = bytes.buffer;
+          break;
+        case "blob":
+          buf = data;
+          break;
+        default:
+          throw new Error("Invalid content encoding!");
+      }
+
+      return new Promise((resolve, reject) => {
+        this.currentRequest = new XMLHttpRequest();
+        const xhr = this.currentRequest;
+
+        xhr.open("PUT", url, true);
+        xhr.setRequestHeader("Content-Type", contentType);
+
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const progress = Math.round((event.loaded * 100) / event.total);
+            if (onProgressCallback) {
+              onProgressCallback(progress);
+            }
+          }
+        };
+
+        xhr.onload = () => {
+          this.currentRequest = null;
+          if (xhr.status === 200 || xhr.status === 204) {
+            resolve({
+              status: "success",
+              data: {
+                direct_url: directUrl,
+                fileUrl: directUrl,
+              },
+            });
+          } else {
+            reject(new Error(`Upload failed with status: ${xhr.status}`));
+          }
+        };
+
+        xhr.onerror = () => {
+          this.currentRequest = null;
+          reject(new Error("Upload failed"));
+        };
+
+        xhr.send(buf);
+      });
+    } catch (error) {
+      console.error("Upload error:", error);
+      throw error;
+    }
+  }
+
+  abortUpload() {
+    if (this.currentRequest) {
+      this.currentRequest.abort();
+      this.currentRequest = null;
+    }
+  }
+}
+
+// Create instance
+const s3Uploader = new UploadToS3();
+
 export default {
+  // S3 Upload APIs
+  uploadS3: (data) => request.post("/api/admin/manage/upload/s3", data),
+  uploadToS3: (filename, data, options, onProgress) =>
+    s3Uploader.upload(filename, data, options, onProgress),
+
   // Authentication APIs
   login: (data) => request.post("/api/auth/login", data, { needToken: false }),
   logout: () => request.post("/api/auth/logout", {}, { needTip: false }),

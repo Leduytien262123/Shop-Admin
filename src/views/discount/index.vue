@@ -46,24 +46,22 @@
           <n-button type="primary" @click="searchData">Tìm kiếm</n-button>
         </div>
 
-        <n-spin :show="loading">
-          <n-data-table
-            :columns="columns"
-            :data="discounts"
-            :bordered="true"
-            :striped="true"
-            :loading="loading"
-            :scroll-x="1200"
-          />
-          <Pagination
-            :total="total"
-            :page="1"
-            :limit="10"
-            :name="'mã giảm giá'"
-            :pageSize="10"
-            @change="loadDiscounts"
-          />
-        </n-spin>
+        <n-data-table
+          :columns="columns"
+          :data="discounts"
+          :bordered="true"
+          :striped="true"
+          :loading="loading"
+          :scroll-x="1200"
+        />
+        <Pagination
+          :total="total"
+          :page="1"
+          :limit="10"
+          :name="'mã giảm giá'"
+          :pageSize="10"
+          @change="loadDiscounts"
+        />
       </n-space>
     </n-card>
 

@@ -1,7 +1,7 @@
 <template>
   <n-dropdown :options="options" @select="handleSelect">
     <div id="user-dropdown" class="flex cursor-pointer items-center">
-      <n-avatar round :size="36" :src="userStore.avatar || userEmpty" />
+      <n-avatar round :size="36" :src="userStore.avatar?.url || userEmpty" />
       <div
         v-if="userStore.userInfo"
         class="ml-12 flex-col flex-shrink-0 items-center"

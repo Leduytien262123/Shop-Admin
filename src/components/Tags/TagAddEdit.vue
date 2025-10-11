@@ -1,5 +1,5 @@
 <script setup>
-defineOptions({ name: "TagAddEdit" });
+defineOptions({ name: "TagsAddEdit" });
 
 const props = defineProps({
   id: {
@@ -14,22 +14,22 @@ const formRef = ref(null);
 const loading = ref(false);
 const isEdit = computed(() => !!props.id);
 
-const tagForm = ref({
+const formValue = ref({
   name: "",
-  description: null,
+  display_order: null,
   slug: "",
   is_active: true,
-  show_menu: false,
-  show_home: false,
-  show_footer: false,
-  meta_title: "",
-  meta_keywords: "",
-  meta_description: "",
-  meta_image: [],
+  metadata: {
+    meta_title: "",
+    meta_keywords: "",
+    meta_description: "",
+    meta_image: [],
+  },
   content: {
     cover_photo: [],
     images: [],
     description: "",
+    content: "",
   },
 });
 
@@ -37,7 +37,7 @@ const rules = {
   name: [
     {
       required: true,
-      message: "Tên thẻ Tag không được để trống",
+      message: "Tên thẻ tag không được để trống",
       trigger: ["blur", "input"],
     },
   ],
@@ -50,26 +50,6 @@ const rules = {
   ],
 };
 
-function generateSlug(name) {
-  return name
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .trim("-");
-}
-
-watch(
-  () => tagForm.value.name,
-  (newName) => {
-    if (newName) {
-      tagForm.value.slug = generateSlug(newName);
-    }
-  }
-);
-
 async function loadTag() {
   if (!props.id) return;
 
@@ -78,57 +58,31 @@ async function loadTag() {
     const response = await api.getTagById(props.id);
     if (response.data.success) {
       const data = response.data.data;
-      tagForm.value = {
+
+      formValue.value = {
         name: data.name || "",
-        description: data.description || null,
         slug: data.slug || "",
+        display_order: data.display_order || null,
         is_active: data.is_active,
-        show_menu: data.show_menu,
-        show_home: data.show_home,
-        show_footer: data.show_footer,
-        meta_title: data.meta_title || "",
-        meta_keywords: data.meta_keywords || "",
-        meta_description: data.meta_description || "",
-        meta_image: data.meta_image
-          ? Array.isArray(data.meta_image)
-            ? data.meta_image.map((img) => ({
-                url_file: img.url_file || img.url || img,
-                alt: img.alt || data.alt || "",
-              }))
-            : [{ url_file: data.meta_image, alt: data.alt || "" }]
-          : [],
-        cover_photo: data.cover_photo
-          ? [{ url_file: data.cover_photo, alt: data.alt || "" }]
-          : [],
-        images: data.images
-          ? Array.isArray(data.images)
-            ? data.images.map((img) => ({
-                url_file: img.url_file || img.url || img,
-                alt: img.alt || data.alt || "",
-              }))
-            : [{ url_file: data.images, alt: data.alt || "" }]
-          : [],
+        metadata: {
+          meta_title: data.metadata?.meta_title || "",
+          meta_keywords: data.metadata?.meta_keywords || "",
+          meta_description: data.metadata?.meta_description || "",
+          meta_image: data.metadata.meta_image || [],
+        },
+        content: {
+          cover_photo: data.content?.cover_photo || [],
+          images: data.content?.images || [],
+          description: data.content?.description || "",
+          content: data.content?.content || "",
+        },
       };
     }
   } catch (error) {
-    $message.error("Không thể tải thông tin thẻ Tag");
-    console.error("Load blog category error:", error);
+    $message.error("Không thể tải thông tin thẻ tag");
   } finally {
     loading.value = false;
   }
-}
-
-function normalizeImageField(field) {
-  if (!Array.isArray(field)) return [];
-  return field.map((img) => {
-    if (typeof img === "string") {
-      return { url_file: img, alt: "" };
-    }
-    return {
-      url_file: img.url_file || img.url || "",
-      alt: img.alt || "",
-    };
-  });
 }
 
 const handleBack = () => {
@@ -139,25 +93,15 @@ async function handleSave() {
   try {
     await formRef.value?.validate();
     loading.value = true;
-    // Chuẩn hóa body gửi lên
     const body = {
-      ...tagForm.value,
-      meta_image:
-        tagForm.value.meta_image && tagForm.value.meta_image.length > 0
-          ? normalizeImageField(tagForm.value.meta_image)[0]
-          : null,
-      cover_photo:
-        tagForm.value.cover_photo && tagForm.value.cover_photo.length > 0
-          ? normalizeImageField(tagForm.value.cover_photo)[0]
-          : null,
-      images: normalizeImageField(tagForm.value.images),
+      ...formValue.value,
     };
     if (isEdit.value) {
       await api.updateTag(props.id, body);
-      $message.success("Cập nhật thẻ Tag thành công!");
+      $message.success("Cập nhật thành công!");
     } else {
       await api.createTag(body);
-      $message.success("Thêm thẻ Tag thành công!");
+      $message.success("Thêm mới thành công!");
     }
     handleBack();
   } catch (error) {
@@ -165,12 +109,14 @@ async function handleSave() {
       return;
     }
     const errorMessage = isEdit.value
-      ? "Cập nhật thẻ Tag thất bại"
-      : "Thêm thẻ Tag thất bại";
+      ? "Cập nhật thẻ thất bại"
+      : "Thêm thẻ thất bại";
     $message.error(errorMessage);
     console.error("Save category error:", error);
   } finally {
-    loading.value = false;
+    setTimeout(() => {
+      loading.value = false;
+    }, 1000);
   }
 }
 
@@ -187,20 +133,20 @@ onMounted(() => {
       <ButtonBack :handleBack />
     </template>
 
-    <n-card :title="isEdit ? 'Sửa thẻ Tag' : 'Thêm thẻ Tag'">
+    <n-card :title="isEdit ? 'Sửa thẻ' : 'Thêm thẻ'">
       <n-spin :show="loading">
         <n-form
           ref="formRef"
-          :model="tagForm"
+          :model="formValue"
           :rules="rules"
           label-placement="top"
         >
           <n-grid cols="3" x-gap="16" y-gap="16">
             <n-grid-item span="1">
-              <n-form-item label="Tên thẻ Tag" path="name">
+              <n-form-item label="Tên thẻ tag" path="name">
                 <NaiveInput
-                  v-model:value="tagForm.name"
-                  placeholder="Nhập tên danh mục"
+                  v-model:value="formValue.name"
+                  placeholder="Nhập tên thẻ tag"
                   :disabled="loading"
                 />
               </n-form-item>
@@ -209,9 +155,9 @@ onMounted(() => {
             <n-grid-item span="1">
               <n-form-item label="Đường dẫn" path="slug">
                 <NaiveInput
-                  v-model:value="tagForm.slug"
+                  v-model:value="formValue.slug"
                   placeholder="Nhập đường dẫn"
-                  :slug="tagForm.name"
+                  :slug="formValue.name"
                 />
               </n-form-item>
             </n-grid-item>
@@ -219,7 +165,7 @@ onMounted(() => {
             <n-grid-item span="1">
               <n-form-item label="Số thứ tự hiển thị">
                 <NaiveInputNumber
-                  v-model:value="tagForm.description"
+                  v-model:value="formValue.display_order"
                   placeholder="Nhập số thứ tự hiển thị"
                   class="w-full"
                 />
@@ -228,19 +174,20 @@ onMounted(() => {
 
             <n-grid-item span="3">
               <FormMeta
-                v-model:metaTitle="tagForm.meta_title"
-                v-model:metaKeywords="tagForm.meta_keywords"
-                v-model:metaDescription="tagForm.meta_description"
-                v-model:metaImage="tagForm.meta_image"
+                v-model:metaTitle="formValue.metadata.meta_title"
+                v-model:metaKeywords="formValue.metadata.meta_keywords"
+                v-model:metaDescription="formValue.metadata.meta_description"
+                v-model:metaImage="formValue.metadata.meta_image"
               />
             </n-grid-item>
 
             <n-grid-item span="3">
               <ContentBlog
-                :title="'Nội dung thẻ Tag'"
-                v-model:coverPhoto="tagForm.content.cover_photo"
-                v-model:images="tagForm.content.images"
-                v-model:description="tagForm.content.description"
+                :title="'Nội dung thẻ tag'"
+                v-model:coverPhoto="formValue.content.cover_photo"
+                v-model:images="formValue.content.images"
+                v-model:description="formValue.content.description"
+                v-model:content="formValue.content.content"
               />
             </n-grid-item>
           </n-grid>
@@ -252,6 +199,8 @@ onMounted(() => {
           :isEdit="isEdit"
           :handleBack="handleBack"
           :handleSave="handleSave"
+          :loading="loading"
+          :disabled="loading"
         />
       </template>
     </n-card>

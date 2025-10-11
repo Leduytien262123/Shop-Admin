@@ -34,23 +34,21 @@
           <ButtonSearch ref="buttonSearchRef" :searchData="loadProducts" />
         </div>
 
-        <n-spin :show="loading">
-          <n-data-table
-            :columns="columns"
-            :data="products"
-            :bordered="true"
-            :striped="true"
-            :loading="loading"
-          />
-          <Pagination
-            :total="total"
-            :page="1"
-            :limit="10"
-            :name="'sản phẩm'"
-            :pageSize="10"
-            @change="loadProducts"
-          />
-        </n-spin>
+        <n-data-table
+          :columns="columns"
+          :data="products"
+          :bordered="true"
+          :striped="true"
+          :loading="loading"
+        />
+        <Pagination
+          :total="total"
+          :page="1"
+          :limit="10"
+          :name="'sản phẩm'"
+          :pageSize="10"
+          @change="loadProducts"
+        />
       </n-space>
     </n-card>
 

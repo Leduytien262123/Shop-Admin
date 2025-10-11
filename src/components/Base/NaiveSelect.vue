@@ -7,7 +7,7 @@ const props = defineProps({
   },
   options: {
     type: Array,
-    required: true,
+    required: false,
   },
 });
 

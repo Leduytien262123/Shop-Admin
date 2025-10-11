@@ -10,7 +10,7 @@ const props = defineProps({
 
 const router = useRouter();
 
-const productForm = ref({
+const formValue = ref({
   name: "",
   slug: "",
   sku: "",
@@ -22,7 +22,13 @@ const productForm = ref({
     meta_title: "",
     meta_keywords: "",
     meta_description: "",
-    meta_image: null,
+    meta_image: [], // Đổi từ null thành []
+  },
+  content: {
+    cover_photo: [],
+    images: [],
+    description: "",
+    content: "",
   },
 });
 
@@ -75,9 +81,9 @@ const rules = {
       trigger: ["blur", "input"],
       validator(rule, value) {
         if (value !== null && value !== undefined && value !== "") {
-          if (Number(value) > Number(productForm.value?.price)) {
+          if (Number(value) > Number(formValue.value?.price)) {
             return new Error("Giá sale không được lớn hơn giá bán");
-          } else if (Number(value) === Number(productForm.value?.price)) {
+          } else if (Number(value) === Number(formValue.value?.price)) {
             return new Error("Giá sale không được bằng giá bán");
           }
         }
@@ -99,10 +105,10 @@ function generateSlug(name) {
 }
 
 watch(
-  () => productForm.value.name,
+  () => formValue.value.name,
   (newName) => {
     if (newName) {
-      productForm.value.slug = generateSlug(newName);
+      formValue.value.slug = generateSlug(newName);
     }
   }
 );
@@ -136,29 +142,68 @@ async function loadProduct() {
     loading.value = true;
     const response = await api.getProductById(props.id);
     if (response.data.success) {
-      productForm.value = {
-        name: response.data.data.name || "",
-        description: response.data.data.description || "",
-        slug: response.data.data.slug || "",
-        is_active: response.data.data.is_active,
-        category_id: response.data.data.category_id || null,
-        sku: response.data.data.sku || "",
-        price: response.data.data.price || null,
-        discount_price: response.data.data.discount_price || null,
-        show_menu: response.data.data.show_menu,
-        show_home: response.data.data.show_home,
-        show_footer: response.data.data.show_footer,
+      const data = response.data.data;
+
+      // Xử lý cover_photo
+      let coverPhoto = [];
+      if (data.cover_photo) {
+        if (Array.isArray(data.cover_photo)) {
+          coverPhoto = data.cover_photo;
+        } else if (typeof data.cover_photo === "string") {
+          coverPhoto = [{ url: data.cover_photo, alt: data.alt || "" }];
+        } else if (data.cover_photo.url) {
+          coverPhoto = [
+            { url: data.cover_photo.url, alt: data.cover_photo.alt || "" },
+          ];
+        }
+      }
+
+      // Xử lý images
+      let images = [];
+      if (data.images) {
+        if (Array.isArray(data.images)) {
+          images = data.images.map((img) => {
+            if (typeof img === "string") {
+              return { url: img, alt: "" };
+            }
+            return { url: img.url || img.url_file || "", alt: img.alt || "" };
+          });
+        } else if (typeof data.images === "string") {
+          images = [{ url: data.images, alt: "" }];
+        }
+      }
+
+      formValue.value = {
+        name: data.name || "",
+        description: data.description || "",
+        slug: data.slug || "",
+        is_active: data.is_active,
+        category_id: data.category_id || null,
+        sku: data.sku || "",
+        price: data.price || null,
+        discount_price: data.discount_price || null,
+        show_menu: data.show_menu,
+        show_home: data.show_home,
+        show_footer: data.show_footer,
         metadata: {
-          meta_title: response.data.data.metadata?.meta_title || "",
-          meta_keywords: response.data.data.metadata?.meta_keywords || "",
-          meta_description: response.data.data.metadata?.meta_description || "",
-          meta_image: response.data.data.metadata?.meta_image,
+          meta_title: data.metadata?.meta_title || "",
+          meta_keywords: data.metadata?.meta_keywords || "",
+          meta_description: data.metadata?.meta_description || "",
+          meta_image: Array.isArray(data.metadata?.meta_image)
+            ? data.metadata.meta_image
+            : [],
+        },
+        content: {
+          cover_photo: coverPhoto,
+          images: images,
+          description: data.content?.description || "",
+          content: data.content?.content || "",
         },
       };
     }
   } catch (error) {
-    $message.error("Không thể tải thông tin danh mục");
-    console.error("Load category error:", error);
+    $message.error("Không thể tải thông tin sản phẩm");
+    console.error("Load product error:", error);
   } finally {
     loading.value = false;
   }
@@ -182,10 +227,10 @@ async function handleSave() {
     loading.value = true;
 
     if (isEdit.value) {
-      await api.updateProduct(props.id, productForm.value);
+      await api.updateProduct(props.id, formValue.value);
       $message.success("Cập nhật sản phẩm thành công!");
     } else {
-      await api.createProduct(productForm.value);
+      await api.createProduct(formValue.value);
       $message.success("Thêm sản phẩm thành công!");
     }
 
@@ -213,12 +258,12 @@ async function handleSave() {
     </template>
 
     <n-card :title="isEdit ? 'Sửa sản phẩm' : 'Thêm sản phẩm'">
-      <n-form :model="productForm" :rules="rules" ref="formRef">
+      <n-form :model="formValue" :rules="rules" ref="formRef">
         <n-grid cols="3" x-gap="16" y-gap="16">
           <n-grid-item span="3">
             <n-form-item label="Tên sản phẩm" path="name">
               <NaiveInput
-                v-model:value="productForm.name"
+                v-model:value="formValue.name"
                 placeholder="Nhập tên sản phẩm"
               />
             </n-form-item>
@@ -227,9 +272,9 @@ async function handleSave() {
           <n-grid-item span="2">
             <n-form-item label="Đường dẫn" path="slug">
               <NaiveInput
-                v-model:value="productForm.slug"
+                v-model:value="formValue.slug"
                 placeholder="Nhập đường dẫn"
-                :slug="productForm.name"
+                :slug="formValue.name"
               />
             </n-form-item>
           </n-grid-item>
@@ -237,7 +282,7 @@ async function handleSave() {
           <n-grid-item span="1">
             <n-form-item label="Danh mục" path="category_id">
               <NaiveSelect
-                v-model:value="productForm.category_id"
+                v-model:value="formValue.category_id"
                 :options="categories"
                 filterable
                 placeholder="Chọn danh mục"
@@ -249,7 +294,7 @@ async function handleSave() {
           <n-grid-item span="1">
             <n-form-item label="SKU" path="sku">
               <NaiveInput
-                v-model:value="productForm.sku"
+                v-model:value="formValue.sku"
                 placeholder="Nhập sku"
                 :sku="true"
               />
@@ -259,7 +304,7 @@ async function handleSave() {
           <n-grid-item span="1">
             <n-form-item label="Giá" path="price">
               <NaiveInputNumber
-                v-model:value="productForm.price"
+                v-model:value="formValue.price"
                 :show-button="false"
                 :money="true"
                 placeholder="Nhập giá sản phẩm"
@@ -271,7 +316,7 @@ async function handleSave() {
           <n-grid-item span="1">
             <n-form-item label="Giá sale" path="discount_price">
               <NaiveInputNumber
-                v-model:value="productForm.discount_price"
+                v-model:value="formValue.discount_price"
                 :show-button="false"
                 :money="true"
                 placeholder="Nhập giá khuyến mãi"
@@ -283,20 +328,32 @@ async function handleSave() {
           <n-grid-item span="3">
             <n-form-item label="Mô tả" path="description">
               <NaiveInput
-                v-model:value="productForm.description"
+                v-model:value="formValue.description"
                 type="textarea"
                 placeholder="Nhập mô tả sản phẩm"
               />
             </n-form-item>
           </n-grid-item>
-        </n-grid>
 
-        <FormMeta
-          v-model:metaTitle="productForm.metadata.meta_title"
-          v-model:metaKeywords="productForm.metadata.meta_keywords"
-          v-model:metaDescription="productForm.metadata.meta_description"
-          v-model:metaImage="productForm.metadata.meta_image"
-        />
+          <n-grid-item span="3">
+            <FormMeta
+              v-model:metaTitle="formValue.metadata.meta_title"
+              v-model:metaKeywords="formValue.metadata.meta_keywords"
+              v-model:metaDescription="formValue.metadata.meta_description"
+              v-model:metaImage="formValue.metadata.meta_image"
+            />
+          </n-grid-item>
+
+          <n-grid-item span="3">
+            <ContentBlog
+              :title="'Nội dung sản phẩm'"
+              v-model:coverPhoto="formValue.content.cover_photo"
+              v-model:images="formValue.content.images"
+              v-model:description="formValue.content.description"
+              v-model:content="formValue.content.content"
+            />
+          </n-grid-item>
+        </n-grid>
       </n-form>
 
       <template #action>

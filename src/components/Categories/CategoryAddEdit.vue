@@ -26,7 +26,7 @@ const categoryForm = ref({
     meta_title: "",
     meta_keywords: "",
     meta_description: "",
-    meta_image: null,
+    meta_image: [],
   },
 });
 
@@ -74,19 +74,22 @@ async function loadCategory() {
     loading.value = true;
     const response = await api.getCategoryById(props.id);
     if (response.data.success) {
+      const data = response.data.data;
       categoryForm.value = {
-        name: response.data.data.name || "",
-        description: response.data.data.description || "",
-        slug: response.data.data.slug || "",
-        is_active: response.data.data.is_active,
-        show_menu: response.data.data.show_menu,
-        show_home: response.data.data.show_home,
-        show_footer: response.data.data.show_footer,
+        name: data.name || "",
+        description: data.description || "",
+        slug: data.slug || "",
+        is_active: data.is_active,
+        show_menu: data.show_menu,
+        show_home: data.show_home,
+        show_footer: data.show_footer,
         metadata: {
-          meta_title: response.data.data.metadata?.meta_title || "",
-          meta_keywords: response.data.data.metadata?.meta_keywords || "",
-          meta_description: response.data.data.metadata?.meta_description || "",
-          meta_image: response.data.data.metadata?.meta_image,
+          meta_title: data.metadata?.meta_title || "",
+          meta_keywords: data.metadata?.meta_keywords || "",
+          meta_description: data.metadata?.meta_description || "",
+          meta_image: Array.isArray(data.metadata.meta_image)
+            ? data.metadata.meta_image
+            : [],
         },
       };
     }
@@ -230,6 +233,8 @@ onMounted(() => {
           :isEdit="isEdit"
           :handleBack="handleBack"
           :handleSave="handleSave"
+          :loading="loading"
+          :disabled="loading"
         />
       </template>
     </n-card>

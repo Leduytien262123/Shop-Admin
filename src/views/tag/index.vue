@@ -22,15 +22,22 @@
           <n-button type="primary" @click="searchData">Tìm kiếm</n-button>
         </div>
 
-        <n-spin :show="loading">
-          <n-data-table
-            :columns="columns"
-            :data="tags"
-            :bordered="true"
-            :striped="true"
-            :loading="loading"
-          />
-        </n-spin>
+        <n-data-table
+          :columns="columns"
+          :data="tags"
+          :bordered="true"
+          :striped="true"
+          :loading="loading"
+        />
+
+        <Pagination
+          :total="total"
+          :page="1"
+          :limit="10"
+          :name="'thẻ tag'"
+          :pageSize="10"
+          @change="loadTags"
+        />
       </n-space>
     </n-card>
 
@@ -56,6 +63,7 @@ const dataDetail = ref(null);
 const showDetailModal = ref(false);
 const titleDetail = ref("Chi tiết thẻ Tag");
 const detailModalRef = ref(null);
+const total = ref(0);
 
 const columns = [
   {
@@ -64,8 +72,8 @@ const columns = [
     ellipsis: true,
   },
   {
-    title: "Mô tả",
-    key: "description",
+    title: "Đường dẫn",
+    key: "slug",
     ellipsis: true,
   },
   {
@@ -143,6 +151,7 @@ async function loadTags() {
     }
     const response = await api.getTags(params);
     tags.value = response.data?.data?.tags || [];
+    total.value = response.data?.data?.pagination?.total || 0;
   } catch (error) {
     $message.error("Không thể tải danh sách thẻ Tag");
   } finally {

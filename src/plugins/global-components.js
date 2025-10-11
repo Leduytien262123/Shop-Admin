@@ -1,5 +1,7 @@
 import ModalDetail from "@/components/Modal/ModalDetail.vue";
 import Pagination from "@/components/Pagination/index.vue";
+import RichEditor from "@/components/Base/RichEditor.vue";
+import RichEditorTiny from "@/components/Base/RichEditorTiny.vue";
 import AddReload from "@/components/Base/AddReload.vue";
 import FormMeta from "@/components/Base/FormMeta.vue";
 import ContentBlog from "@/components/Base/ContentBlog.vue";
@@ -25,6 +27,8 @@ export function setupGlobalComponents(app) {
   const components = {
     ModalDetail,
     Pagination,
+    RichEditor,
+    RichEditorTiny,
     AddReload,
     FormMeta,
     ContentBlog,

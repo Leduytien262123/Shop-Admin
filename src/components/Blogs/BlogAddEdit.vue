@@ -21,27 +21,30 @@ const optionsStatus = [
   { label: "Bài đăng", value: "post" },
 ];
 
-const blogForm = ref({
-  name: "",
+const formValue = ref({
+  title: "",
   description: "",
   slug: "",
   category_id: null,
   tag_id: null,
   status: "draft",
   published_at: null,
-  meta_title: "",
-  meta_keywords: "",
-  meta_description: "",
-  meta_image: [],
+  metadata: {
+    meta_title: "",
+    meta_keywords: "",
+    meta_description: "",
+    meta_image: [], // Đổi từ null thành []
+  },
   content: {
     cover_photo: [],
     images: [],
     description: "",
+    content: "",
   },
 });
 
 const rules = {
-  name: [
+  title: [
     {
       required: true,
       message: "Tên bài viết không được để trống",
@@ -104,23 +107,34 @@ async function loadBlog() {
     loading.value = true;
     const response = await api.getBlogById(props.id);
     if (response.data.success) {
-      blogForm.value = {
-        name: response.data.name || "",
-        description: response.data.description || "",
-        slug: response.data.slug || "",
-        is_active: response.data.is_active,
-        show_menu: response.data.show_menu,
-        show_home: response.data.show_home,
-        show_footer: response.data.show_footer,
-        meta_title: response.data.meta_title || "",
-        meta_keywords: response.data.meta_keywords || "",
-        meta_description: response.data.meta_description || "",
-        meta_image: response.data.meta_image || [],
+      const data = response.data.data;
+
+      formValue.value = {
+        title: data.title || "",
+        slug: data.slug || "",
+        is_active: data.is_active,
+        category_id: data.category_id || null,
+        tag_id: data.tag_id || null,
+        status: data.status || "draft",
+        published_at: data.published_at || null,
+        description: data.description || "",
+        metadata: {
+          meta_title: data.metadata?.meta_title || "",
+          meta_keywords: data.metadata?.meta_keywords || "",
+          meta_description: data.metadata?.meta_description || "",
+          meta_image: data.metadata?.meta_image || [],
+        },
+        content: {
+          cover_photo: data.content?.cover_photo || [],
+          images: data.content?.images || [],
+          description: data.content?.description || "",
+          content: data.content?.content || "",
+        },
       };
     }
   } catch (error) {
     $message.error("Không thể tải thông tin bài viết");
-    console.error("Load category error:", error);
+    console.error("Load blog error:", error);
   } finally {
     loading.value = false;
   }
@@ -136,11 +150,16 @@ async function handleSave() {
 
     loading.value = true;
 
+    const dataToSend = { ...formValue.value };
+    if (dataToSend.published_at) {
+      dataToSend.published_at = new Date(dataToSend.published_at).toISOString();
+    }
+
     if (isEdit.value) {
-      await api.updateBlog(props.id, blogForm.value);
+      await api.updateBlog(props.id, dataToSend);
       $message.success("Cập nhật bài viết thành công!");
     } else {
-      await api.createBlog(blogForm.value);
+      await api.createBlog(dataToSend);
       $message.success("Thêm bài viết thành công!");
     }
 
@@ -185,15 +204,15 @@ onMounted(() => {
       <n-spin :show="loading">
         <n-form
           ref="formRef"
-          :model="blogForm"
+          :model="formValue"
           :rules="rules"
           label-placement="top"
         >
           <n-grid cols="4" x-gap="16" y-gap="16">
             <n-grid-item span="2">
-              <n-form-item label="Tên bài viết" path="name">
+              <n-form-item label="Tên bài viết" path="title">
                 <NaiveInput
-                  v-model:value="blogForm.name"
+                  v-model:value="formValue.title"
                   placeholder="Nhập tên bài viết"
                 />
               </n-form-item>
@@ -202,9 +221,9 @@ onMounted(() => {
             <n-grid-item span="2">
               <n-form-item label="Đường dẫn" path="slug">
                 <NaiveInput
-                  v-model:value="blogForm.slug"
+                  v-model:value="formValue.slug"
                   placeholder="Nhập đường dẫn"
-                  :slug="blogForm.name"
+                  :slug="formValue.title"
                 />
               </n-form-item>
             </n-grid-item>
@@ -212,7 +231,7 @@ onMounted(() => {
             <n-grid-item span="2">
               <n-form-item label="Danh mục bài viết" path="category_id">
                 <NaiveSelect
-                  v-model:value="blogForm.category_id"
+                  v-model:value="formValue.category_id"
                   :options="blogCategories"
                   clearable
                   placeholder="Chọn danh mục bài viết"
@@ -223,7 +242,7 @@ onMounted(() => {
             <n-grid-item span="2">
               <n-form-item label="Thẻ tag" path="tag_id">
                 <NaiveSelect
-                  v-model:value="blogForm.tag_id"
+                  v-model:value="formValue.tag_id"
                   :options="tags"
                   clearable
                   placeholder="Chọn thẻ tag"
@@ -234,7 +253,7 @@ onMounted(() => {
             <n-grid-item span="2">
               <n-form-item label="Trạng thái" path="status">
                 <NaiveSelect
-                  v-model:value="blogForm.status"
+                  v-model:value="formValue.status"
                   :options="optionsStatus"
                 />
               </n-form-item>
@@ -244,11 +263,11 @@ onMounted(() => {
               <n-form-item label="Ngày đăng" path="published_at">
                 <NaiveDatePicker
                   :value="
-                    isValidDate(blogForm.published_at)
-                      ? blogForm.published_at
+                    isValidDate(formValue.published_at)
+                      ? formValue.published_at
                       : null
                   "
-                  @update:value="(val) => (blogForm.published_at = val)"
+                  @update:value="(val) => (formValue.published_at = val)"
                   type="date"
                   class="w-full"
                 />
@@ -258,7 +277,7 @@ onMounted(() => {
             <n-grid-item span="4">
               <n-form-item label="Mô tả">
                 <NaiveInput
-                  v-model:value="blogForm.description"
+                  v-model:value="formValue.description"
                   type="textarea"
                   placeholder="Nhập mô tả bài viết"
                   :autosize="{ minRows: 3, maxRows: 6 }"
@@ -269,19 +288,20 @@ onMounted(() => {
 
             <n-grid-item span="4">
               <FormMeta
-                v-model:metaTitle="blogForm.meta_title"
-                v-model:metaKeywords="blogForm.meta_keywords"
-                v-model:metaDescription="blogForm.meta_description"
-                v-model:metaImage="blogForm.meta_image"
+                v-model:metaTitle="formValue.metadata.meta_title"
+                v-model:metaKeywords="formValue.metadata.meta_keywords"
+                v-model:metaDescription="formValue.metadata.meta_description"
+                v-model:metaImage="formValue.metadata.meta_image"
               />
             </n-grid-item>
 
             <n-grid-item span="4">
               <ContentBlog
                 :title="'Nội dung bài viết'"
-                v-model:coverPhoto="blogForm.content.cover_photo"
-                v-model:images="blogForm.content.images"
-                v-model:description="blogForm.content.description"
+                v-model:coverPhoto="formValue.content.cover_photo"
+                v-model:images="formValue.content.images"
+                v-model:description="formValue.content.description"
+                v-model:content="formValue.content.content"
               />
             </n-grid-item>
           </n-grid>

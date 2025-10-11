@@ -280,6 +280,15 @@ export const basicRoutes = [
   },
 
   {
+    name: "test-upload",
+    path: "/demo/upload",
+    component: () => import("@/views/demo/upload/index.vue"),
+    meta: {
+      title: "Demo upload",
+    },
+  },
+
+  {
     name: "404",
     path: "/404",
     component: () => import("@/views/error-page/404.vue"),

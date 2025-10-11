@@ -33,6 +33,7 @@
     "@unocss/preset-rem-to-px": "^66.5.2",
     "@vitejs/plugin-vue": "^5.2.4",
     "@vitejs/plugin-vue-jsx": "^4.2.0",
+    "@tinymce/tinymce-vue": "5.1.1",
     "eslint": "^9.36.0",
     "eslint-plugin-format": "^1.0.2",
     "eslint-plugin-vue": "^10.5.0",

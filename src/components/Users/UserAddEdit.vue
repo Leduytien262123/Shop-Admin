@@ -17,8 +17,11 @@ const context = computed(() => {
 });
 const isEdit = computed(() => !!props.id);
 const loading = ref(false);
+const fileList = ref([]);
 
-const userForm = ref({
+const emit = defineEmits(["update:avatar"]);
+
+const formValue = ref({
   role: null,
   creator_id: userStore.userId,
   creator_name: userStore.username,
@@ -27,7 +30,6 @@ const userForm = ref({
   email: "",
   address: "",
   addresses: [""],
-  avatar: null,
 });
 
 const rules = {
@@ -149,7 +151,7 @@ const rules = {
       required: true,
       trigger: ["blur", "input"],
       validator(rule, value) {
-        const address = userForm.value.address;
+        const address = formValue.value.address;
         if (!address) {
           return new Error("Vui lòng nhập địa chỉ");
         }
@@ -177,10 +179,10 @@ function generateSlug(name) {
 }
 
 watch(
-  () => userForm.value.name,
+  () => formValue.value.name,
   (newName) => {
     if (newName) {
-      userForm.value.slug = generateSlug(newName);
+      formValue.value.slug = generateSlug(newName);
     }
   }
 );
@@ -196,7 +198,7 @@ async function loadUser() {
     const response = await api.getUserById(props.id);
     if (response.data.success) {
       const d = response.data.data;
-      userForm.value = {
+      formValue.value = {
         role: d.role || null,
         creator_id: d.creator_id,
         creator_name: d.creator_name,
@@ -204,8 +206,19 @@ async function loadUser() {
         phone: d.phone || "",
         email: d.email || "",
         addresses: d.addresses?.map((a) => a.address) || [""],
-        avatar: d.avatar || null,
       };
+
+      if (d?.avatar && Array.isArray(d.avatar) && d.avatar.length > 0) {
+        fileList.value = d.avatar.map((img, idx) => ({
+          url: img.url || "",
+          alt: img.alt || "",
+          uid: `init-${idx}`,
+          name: img.alt || "avatar",
+          status: "finished",
+        }));
+      } else {
+        fileList.value = [];
+      }
     }
   } catch (error) {
     $message.error(`Không thể tải thông tin ${context.value}`);
@@ -218,8 +231,8 @@ async function loadUser() {
 onMounted(() => {
   // Gán người tạo khi tạo mới
   if (!isEdit.value) {
-    userForm.value.creator_id = userStore.userId;
-    userForm.value.creator_name = userStore.username;
+    formValue.value.creator_id = userStore.userId;
+    formValue.value.creator_name = userStore.username;
   }
   if (isEdit.value) {
     loadUser();
@@ -236,13 +249,18 @@ async function handleSave() {
   try {
     await formRef.value?.validate();
 
-    if (updateAddressRef.value && !updateAddressRef.value.handleSaveRequest()) {
+    if (
+      userStore.role !== "owner" &&
+      updateAddressRef.value &&
+      !updateAddressRef.value.handleSaveRequest()
+    ) {
       return;
     }
 
     if (
-      userForm.value.addresses.length === 0 ||
-      !userForm.value.addresses[0].trim()
+      userStore.role !== "owner" &&
+      (formValue.value.addresses.length === 0 ||
+        !formValue.value.addresses[0].trim())
     ) {
       $message.error("Vui lòng nhập địa chỉ");
       return;
@@ -251,10 +269,17 @@ async function handleSave() {
     loading.value = true;
 
     const body = {
-      ...userForm.value,
-      creator_id: userStore.userId,
-      addresses: userForm.value.addresses.filter((addr) => addr.trim() !== ""),
+      ...formValue.value,
+      creator_id: userStore?.userId,
+      addresses: formValue.value?.addresses?.filter(
+        (addr) => addr.trim() !== ""
+      ),
+      avatar: fileList.value.map((file) => ({
+        url: file.url || "",
+        alt: file.alt || "",
+      })),
     };
+
     if (isEdit.value) {
       await api.updateUser(props.id, body);
       $message.success(`Cập nhật ${context.value} thành công!`);
@@ -280,15 +305,43 @@ async function handleSave() {
 }
 
 function handleInput() {
-  if (userForm.value.full_name) {
-    userForm.value.full_name = userForm.value.full_name
+  if (formValue.value.full_name) {
+    formValue.value.full_name = formValue.value.full_name
       .trim()
       .replace(/\s+/g, " ");
   }
 }
 
 function handleAddressChange(val) {
-  userForm.value.address = val;
+  formValue.value.address = val;
+}
+
+function handleUploadSuccess(file) {
+  const imageObj = {
+    url: file.url || "",
+    alt: file.alt || file.name || "",
+    uid: file.uid,
+    name: file.name || file.alt || "",
+    status: "finished",
+  };
+  emit("update:avatar", [imageObj]);
+  fileList.value = [imageObj];
+}
+
+// Xử lý khi xóa file
+function handleRemove() {
+  emit("update:avatar", []);
+  fileList.value = [];
+  formValue.value.avatar = null;
+}
+
+function handleUpdateFileList(newFileList) {
+  fileList.value = newFileList;
+  if (newFileList.length === 0) {
+    emit("update:avatar", []);
+  } else {
+    emit("update:avatar", newFileList);
+  }
 }
 </script>
 
@@ -299,12 +352,12 @@ function handleAddressChange(val) {
     </template>
 
     <n-card :title="isEdit ? `Sửa ${context}` : `Thêm ${context}`">
-      <n-form :model="userForm" :rules="rules" ref="formRef">
+      <n-form :model="formValue" :rules="rules" ref="formRef">
         <n-grid cols="3" x-gap="16" y-gap="16">
           <n-grid-item span="1">
             <n-form-item :label="`Tên ${context}`" path="full_name">
               <NaiveInput
-                v-model:value="userForm.full_name"
+                v-model:value="formValue.full_name"
                 @blur="handleInput"
                 :placeholder="`Nhập tên ${context}`"
               />
@@ -314,9 +367,9 @@ function handleAddressChange(val) {
           <n-grid-item span="1">
             <n-form-item label="Số điện thoại" path="phone">
               <NaiveInput
-                v-model:value="userForm.phone"
+                v-model:value="formValue.phone"
                 @input="
-                  userForm.phone = $event.replace(/[^\d]/g, '').slice(0, 10)
+                  formValue.phone = $event.replace(/[^\d]/g, '').slice(0, 10)
                 "
                 :input-props="{
                   inputmode: 'numeric',
@@ -331,8 +384,8 @@ function handleAddressChange(val) {
           <n-grid-item span="1">
             <n-form-item label="Email" path="email">
               <NaiveInput
-                v-model:value="userForm.email"
-                @input="userForm.email = $event.replace(/[^\d]/g, '')"
+                v-model:value="formValue.email"
+                @input="formValue.email = $event.replace(/[^\d]/g, '')"
                 placeholder="Nhập email"
               />
             </n-form-item>
@@ -341,12 +394,12 @@ function handleAddressChange(val) {
           <n-grid-item span="3">
             <n-form-item
               label="Địa chỉ"
-              :path="userForm.role === 'owner' ? '' : 'address'"
+              :path="formValue.role === 'owner' ? '' : 'address'"
             >
               <UpdateAddress
                 ref="updateAddressRef"
-                :addresses="userForm.addresses"
-                @update:addresses="userForm.addresses = $event"
+                :addresses="formValue.addresses"
+                @update:addresses="formValue.addresses = $event"
                 @input-address-change="handleAddressChange"
               />
             </n-form-item>
@@ -354,9 +407,17 @@ function handleAddressChange(val) {
 
           <n-grid-item span="3">
             <n-form-item label="Chọn ảnh đại diện" path="avatar">
-              <NaiveUpload
+              <!-- <NaiveUpload
                 :file-list="avatar"
                 @update:file-list="emit('update:avatar', $event)"
+                :max="1"
+                list-type="image-card"
+              /> -->
+              <NaiveUpload
+                :file-list="fileList"
+                @update:file-list="handleUpdateFileList"
+                @upload-success="handleUploadSuccess"
+                @remove="handleRemove"
                 :max="1"
                 list-type="image-card"
               />
@@ -370,6 +431,8 @@ function handleAddressChange(val) {
           :isEdit="isEdit"
           :handleBack="handleBack"
           :handleSave="handleSave"
+          :loading="loading"
+          :disabled="loading"
         />
       </template>
     </n-card>

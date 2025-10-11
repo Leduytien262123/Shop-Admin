@@ -28,25 +28,33 @@
             />
           </n-form-item>
           <n-form-item label="Tag" class="w-full">
-            <NaiveInput
+            <NaiveSelect
               clearable
-              placeholder="Nhập tìm kiếm ..."
+              placeholder="Chọn tag"
               v-model:value="searchQuery.tag"
               @keyup.enter="throttledLoadBlogs"
+              :options="tagOptions"
             />
           </n-form-item>
           <n-button type="primary" @click="searchData">Tìm kiếm</n-button>
         </div>
 
-        <n-spin :show="loading">
-          <n-data-table
-            :columns="columns"
-            :data="blogs"
-            :bordered="true"
-            :striped="true"
-            :loading="loading"
-          />
-        </n-spin>
+        <n-data-table
+          :columns="columns"
+          :data="blogs"
+          :bordered="true"
+          :striped="true"
+          :loading="loading"
+        />
+
+        <Pagination
+          :total="total"
+          :page="1"
+          :limit="10"
+          :name="'bài viết'"
+          :pageSize="10"
+          @change="loadBlogs"
+        />
       </n-space>
     </n-card>
 
@@ -70,33 +78,43 @@ const loading = ref(false);
 const searchQuery = ref({
   search: "",
   category: null,
-  tag: "",
+  tag: null,
 });
 const dataDetail = ref(null);
 const showDetailModal = ref(false);
 const titleDetail = ref("Chi tiết bài viết");
 const detailModalRef = ref(null);
 const blogCategories = ref([]);
+const tagOptions = ref([]);
+const total = ref(0);
 
 const columns = [
   {
+    title: "STT",
+    key: "index",
+    width: 60,
+    render(row, index) {
+      return index + 1;
+    },
+  },
+  {
     title: "Tên",
-    key: "name",
+    key: "title",
     ellipsis: true,
   },
   {
-    title: "Mô tả",
-    key: "description",
+    title: "Đường dẫn",
+    key: "slug",
     ellipsis: true,
   },
   {
     title: "Trạng thái",
-    key: "is_active",
+    key: "status",
     render(row) {
       return h(
         NTag,
-        { type: row.is_active ? "success" : "", size: "small" },
-        { default: () => (row.is_active ? "Hoạt động" : "Dừng hoạt động") }
+        { type: row.status === "post" ? "success" : "", size: "small" },
+        { default: () => (row.status === "post" ? "Bài đăng" : "Bài nháp") }
       );
     },
   },
@@ -145,11 +163,31 @@ async function loadBlogCategories() {
     loading.value = true;
     const params = {
       page: 1,
-      length: 10,
+      length: 100,
     };
     const response = await api.getBlogCategories(params);
     blogCategories.value =
       response.data?.data?.categories?.map((e) => ({
+        label: e.name,
+        value: e.id,
+      })) || [];
+  } catch (error) {
+    $message.error("Không thể tải danh mục bài viết");
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function loadTags() {
+  try {
+    loading.value = true;
+    const params = {
+      page: 1,
+      length: 100,
+    };
+    const response = await api.getTags(params);
+    tagOptions.value =
+      response.data?.data?.tags?.map((e) => ({
         label: e.name,
         value: e.id,
       })) || [];
@@ -179,11 +217,18 @@ async function loadBlogs() {
       page: 1,
       length: 10,
     };
-    if (searchQuery.value) {
-      params.search = searchQuery.value;
+    if (searchQuery.value.search) {
+      params.search = searchQuery.value.search;
+    }
+    if (searchQuery.value.category) {
+      params.category_id = searchQuery.value.category;
+    }
+    if (searchQuery.value.tag) {
+      params.tag_id = searchQuery.value.tag;
     }
     const response = await api.getBlogs(params);
     blogs.value = response.data?.data?.news || [];
+    total.value = response.data?.data?.total || 0;
   } catch (error) {
     $message.error("Không thể tải danh sách bài viết");
   } finally {
@@ -253,6 +298,7 @@ function searchData() {
 // Tải danh sách khi component được mount
 onMounted(() => {
   loadBlogs();
+  loadTags();
   loadBlogCategories();
 });
 </script>

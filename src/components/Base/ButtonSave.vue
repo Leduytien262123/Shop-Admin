@@ -6,11 +6,11 @@ const props = defineProps({
   },
   handleBack: {
     type: Function,
-    required: true,
+    required: false,
   },
   handleSave: {
     type: Function,
-    required: true,
+    required: false,
   },
   loading: {
     type: Boolean,

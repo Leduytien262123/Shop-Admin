@@ -2,7 +2,7 @@
 const props = defineProps({
   handleBack: {
     type: Function,
-    required: true,
+    required: false,
   },
 });
 </script>

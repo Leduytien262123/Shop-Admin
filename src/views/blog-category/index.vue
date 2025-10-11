@@ -22,15 +22,22 @@
           <n-button type="primary" @click="searchData">Tìm kiếm</n-button>
         </div>
 
-        <n-spin :show="loading">
-          <n-data-table
-            :columns="columns"
-            :data="blogCategories"
-            :bordered="true"
-            :striped="true"
-            :loading="loading"
-          />
-        </n-spin>
+        <n-data-table
+          :columns="columns"
+          :data="blogCategories"
+          :bordered="true"
+          :striped="true"
+          :loading="loading"
+        />
+
+        <Pagination
+          :total="total"
+          :page="1"
+          :limit="10"
+          :name="'danh mục bài viết'"
+          :pageSize="10"
+          @change="loadBlogCategories"
+        />
       </n-space>
     </n-card>
 
@@ -56,16 +63,20 @@ const dataDetail = ref(null);
 const showDetailModal = ref(false);
 const titleDetail = ref("Chi tiết danh mục bài viết");
 const detailModalRef = ref(null);
+const total = ref(0);
 
 const columns = [
   {
-    title: "Tên",
-    key: "name",
-    ellipsis: true,
+    title: "STT",
+    key: "stt",
+    width: 70,
+    render(row, index) {
+      return index + 1;
+    },
   },
   {
-    title: "Mô tả",
-    key: "description",
+    title: "Tên",
+    key: "name",
     ellipsis: true,
   },
   {
@@ -143,6 +154,7 @@ async function loadBlogCategories() {
     }
     const response = await api.getBlogCategories(params);
     blogCategories.value = response.data?.data?.categories || [];
+    total.value = response.data?.data?.pagination?.total || 0;
   } catch (error) {
     $message.error("Không thể tải danh sách bài viết");
   } finally {

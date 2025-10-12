@@ -87,9 +87,7 @@ async function loadCategory() {
           meta_title: data.metadata?.meta_title || "",
           meta_keywords: data.metadata?.meta_keywords || "",
           meta_description: data.metadata?.meta_description || "",
-          meta_image: Array.isArray(data.metadata.meta_image)
-            ? data.metadata.meta_image
-            : [],
+          meta_image: data.metadata?.meta_image || [],
         },
       };
     }

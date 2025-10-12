@@ -62,7 +62,10 @@
 </template>
 
 <script setup>
-import { NButton, NTag } from "naive-ui";
+import { NTag } from "naive-ui";
+import { renderButtonWithTooltip } from "@/utils/common";
+import IconPencil from "@/components/icon/Pencil.vue";
+import IconBin from "@/components/icon/Bin.vue";
 
 defineOptions({ name: "ProductManagement" });
 
@@ -86,7 +89,7 @@ const columns = [
     title: "STT",
     key: "stt",
     ellipsis: true,
-    width: 60,
+    width: 70,
     fixed: "left",
     render(row, index) {
       return index + 1;
@@ -130,32 +133,26 @@ const columns = [
   {
     title: "Hành động",
     key: "actions",
+    width: 100,
     render(row) {
-      return h("div", { class: "flex gap-2" }, [
-        h(
-          NButton,
-          { size: "small", onClick: () => viewProduct(row.id) },
-          { default: () => "Xem" }
-        ),
-        h(
-          NButton,
-          {
-            size: "small",
-            type: "primary",
+      return h(
+        "div",
+        { class: "flex items-center gap-4" },
+        [
+          renderButtonWithTooltip({
             onClick: () => editProduct(row.id),
-          },
-          { default: () => "Sửa" }
-        ),
-        h(
-          NButton,
-          {
-            size: "small",
-            type: "error",
-            onClick: () => deleteProduct(row.id),
-          },
-          { default: () => "Xóa" }
-        ),
-      ]);
+            content: h(IconPencil),
+            tooltipContent: "Chỉnh sửa",
+          }),
+          renderButtonWithTooltip({
+            onClick: () => {
+              deleteProduct(row.id);
+            },
+            content: h(IconBin),
+            tooltipContent: "Xoá",
+          }),
+        ].filter(Boolean)
+      );
     },
   },
 ];

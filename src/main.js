@@ -11,6 +11,54 @@ import "@/styles/reset.css";
 import "@/styles/global.css";
 import "uno.css";
 
+(function applyDefaultPassiveEvents() {
+  try {
+    let supportsPassive = false;
+    const opts = Object.defineProperty({}, "passive", {
+      get() {
+        supportsPassive = true;
+      },
+    });
+    window.addEventListener("testPassive", null, opts);
+    window.removeEventListener("testPassive", null, opts);
+
+    if (!supportsPassive) return;
+
+    const nativeAddEventListener =
+      window.EventTarget.prototype.addEventListener;
+    window.EventTarget.prototype.addEventListener = function (
+      type,
+      listener,
+      options
+    ) {
+      const passiveEvents = [
+        "touchstart",
+        "touchmove",
+        "wheel",
+        "mousewheel",
+        "scroll",
+      ];
+      if (
+        passiveEvents.indexOf(type) !== -1 &&
+        (options === undefined ||
+          typeof options === "boolean" ||
+          (typeof options === "object" && options.passive === undefined))
+      ) {
+        let newOptions;
+        if (typeof options === "boolean") {
+          newOptions = { capture: options, passive: true };
+        } else if (options === undefined) {
+          newOptions = { passive: true };
+        } else {
+          newOptions = Object.assign({}, options, { passive: true });
+        }
+        return nativeAddEventListener.call(this, type, listener, newOptions);
+      }
+      return nativeAddEventListener.call(this, type, listener, options);
+    };
+  } catch (e) {}
+})();
+
 async function bootstrap() {
   const app = createApp(App);
   setupStore(app);

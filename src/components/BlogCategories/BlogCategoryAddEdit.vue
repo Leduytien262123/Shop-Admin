@@ -58,7 +58,6 @@ async function loadBlogCategory() {
     const response = await api.getBlogCategoryById(props.id);
     if (response.data.success) {
       const data = response.data.data;
-      console.log("Blog category response:", data);
 
       blogCategoryForm.value = {
         name: data.name || "",

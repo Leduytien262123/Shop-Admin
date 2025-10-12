@@ -56,7 +56,11 @@
 </template>
 
 <script setup>
-import { NButton, NTag } from "naive-ui";
+import { NTag } from "naive-ui";
+import { renderButtonWithTooltip } from "@/utils/common";
+import IconPencil from "@/components/icon/Pencil.vue";
+import IconBin from "@/components/icon/Bin.vue";
+
 defineOptions({ name: "CategoryManagement" });
 
 const router = useRouter();
@@ -71,6 +75,15 @@ const buttonSearchRef = ref(null);
 const total = ref(0);
 
 const columns = [
+  {
+    title: "STT",
+    key: "stt",
+    fixed: "left",
+    width: 70,
+    render(row, index) {
+      return index + 1;
+    },
+  },
   {
     title: "Tên",
     key: "name",
@@ -102,32 +115,26 @@ const columns = [
   {
     title: "Hành động",
     key: "actions",
+    width: 100,
     render(row) {
-      return h("div", { class: "flex gap-2" }, [
-        h(
-          NButton,
-          { size: "small", onClick: () => viewCategory(row.id) },
-          { default: () => "Xem" }
-        ),
-        h(
-          NButton,
-          {
-            size: "small",
-            type: "primary",
+      return h(
+        "div",
+        { class: "flex items-center gap-4" },
+        [
+          renderButtonWithTooltip({
             onClick: () => editCategory(row.id),
-          },
-          { default: () => "Sửa" }
-        ),
-        h(
-          NButton,
-          {
-            size: "small",
-            type: "error",
-            onClick: () => deleteCategory(row.id),
-          },
-          { default: () => "Xóa" }
-        ),
-      ]);
+            content: h(IconPencil),
+            tooltipContent: "Chỉnh sửa",
+          }),
+          renderButtonWithTooltip({
+            onClick: () => {
+              deleteCategory(row.id);
+            },
+            content: h(IconBin),
+            tooltipContent: "Xoá",
+          }),
+        ].filter(Boolean)
+      );
     },
   },
 ];

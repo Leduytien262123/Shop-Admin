@@ -33,7 +33,7 @@ const formValue = ref({
     meta_title: "",
     meta_keywords: "",
     meta_description: "",
-    meta_image: [], // Đổi từ null thành []
+    meta_image: [],
   },
   content: {
     cover_photo: [],
@@ -106,18 +106,18 @@ async function loadBlog() {
   try {
     loading.value = true;
     const response = await api.getBlogById(props.id);
-    if (response.data.success) {
-      const data = response.data.data;
+    if (response?.data?.success) {
+      const data = response?.data?.data;
 
       formValue.value = {
-        title: data.title || "",
-        slug: data.slug || "",
-        is_active: data.is_active,
-        category_id: data.category_id || null,
-        tag_id: data.tag_id || null,
-        status: data.status || "draft",
-        published_at: data.published_at || null,
-        description: data.description || "",
+        title: data?.title || "",
+        slug: data?.slug || "",
+        is_active: data?.is_active || false,
+        category_id: data?.category_id || null,
+        tag_id: data?.tag_id || null,
+        status: data?.status || "draft",
+        published_at: data?.published_at || null,
+        description: data?.description || "",
         metadata: {
           meta_title: data.metadata?.meta_title || "",
           meta_keywords: data.metadata?.meta_keywords || "",
@@ -264,10 +264,15 @@ onMounted(() => {
                 <NaiveDatePicker
                   :value="
                     isValidDate(formValue.published_at)
-                      ? formValue.published_at
+                      ? Date.parse(formValue.published_at)
                       : null
                   "
-                  @update:value="(val) => (formValue.published_at = val)"
+                  @update:value="
+                    (val) =>
+                      (formValue.published_at = val
+                        ? new Date(val).toISOString()
+                        : null)
+                  "
                   type="date"
                   class="w-full"
                 />

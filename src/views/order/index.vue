@@ -145,6 +145,9 @@
 </template>
 
 <script setup>
+import { renderButtonWithTooltip } from "@/utils/common";
+import IconPencil from "@/components/icon/Pencil.vue";
+import IconBin from "@/components/icon/Bin.vue";
 import { ref, onMounted, h, nextTick } from "vue";
 import ModalDetail from "@/components/Modal/ModalDetail.vue";
 import { useRouter } from "vue-router";
@@ -290,26 +293,27 @@ const columns = [
   {
     title: "Hành động",
     key: "actions",
-    width: 180,
     fixed: "right",
+    width: 100,
     render(row) {
-      return h("div", { class: "flex gap-8" }, [
-        h(
-          NButton,
-          { size: "small", onClick: () => viewOrder(row.id) },
-          { default: () => "Xem" }
-        ),
-        h(
-          NButton,
-          { size: "small", type: "primary", onClick: () => editOrder(row.id) },
-          { default: () => "Sửa" }
-        ),
-        h(
-          NButton,
-          { size: "small", type: "error", onClick: () => deleteOrder(row.id) },
-          { default: () => "Xóa" }
-        ),
-      ]);
+      return h(
+        "div",
+        { class: "flex items-center gap-4" },
+        [
+          renderButtonWithTooltip({
+            onClick: () => editOrder(row.id),
+            content: h(IconPencil),
+            tooltipContent: "Chỉnh sửa",
+          }),
+          renderButtonWithTooltip({
+            onClick: () => {
+              deleteOrder(row.id);
+            },
+            content: h(IconBin),
+            tooltipContent: "Xóa",
+          }),
+        ].filter(Boolean)
+      );
     },
   },
 ];

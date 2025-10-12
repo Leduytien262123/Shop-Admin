@@ -211,7 +211,7 @@ const columns = [
   {
     title: "Hành động",
     key: "actions",
-    width: 150,
+    width: 125,
     render(row) {
       return h(
         "div",

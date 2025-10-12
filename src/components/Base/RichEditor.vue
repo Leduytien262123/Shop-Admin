@@ -5,29 +5,19 @@ import "tinymce/models/dom";
 import "tinymce/themes/silver";
 import "tinymce/icons/default";
 import "tinymce/skins/ui/oxide/skin.css";
-// import "tinymce/plugins/a11ychecker"
 import "tinymce/plugins/image";
-// import "tinymce/plugins/editimage"
 import "tinymce/plugins/media";
 import "tinymce/plugins/lists";
 import "tinymce/plugins/advlist";
 import "tinymce/plugins/link";
 import "tinymce/plugins/autolink";
 import "tinymce/plugins/code";
-import "tinymce/plugins/lists";
-import "tinymce/plugins/link";
 import "tinymce/plugins/fullscreen";
 import "tinymce/plugins/preview";
 import "tinymce/plugins/anchor";
 import "tinymce/plugins/insertdatetime";
 import "tinymce/plugins/table";
-import "tinymce/plugins/template";
 import "tinymce/plugins/importcss";
-// import "tinymce/plugins/hr"
-// import "tinymce/plugins/toc"
-// import "tinymce/plugins/textpattern"
-// import "tinymce/plugins/noneditable"
-// import "tinymce/plugins/paste"
 import "tinymce/plugins/save";
 
 const emit = defineEmits(["update:modelValue"]);
@@ -58,73 +48,62 @@ const item = computed({
     emit("update:modelValue", value);
   },
 });
-const onPickerCallback = (cb, value, meta) => {
-  var input = document.createElement("input");
+const onPickerCallback = async (cb, value, meta) => {
+  const input = document.createElement("input");
   input.setAttribute("type", "file");
-  let self = this;
-  input.onchange = function () {
-    var file = this.files[0];
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      const blob = new Blob([new Uint8Array(e.target.result)], {
-        type: file.type,
+  if (meta && meta.filetype === "image") {
+    input.setAttribute("accept", "image/*");
+  }
+
+  input.onchange = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    try {
+      const resp = await api.uploadToS3(file.name, file, {
+        contentEncoding: "blob",
+        contentType: file.type,
       });
-    };
-    reader.readAsArrayBuffer(file);
-    return;
+
+      const url =
+        resp?.data?.fileUrl ||
+        resp?.data?.direct_url ||
+        resp?.data?.directUrl ||
+        resp?.fileUrl ||
+        resp?.direct_url;
+      if (!url) throw new Error("Upload failed: no url returned from S3 API");
+
+      cb(url, { title: file.name });
+    } catch (err) {
+      console.error("File upload failed:", err);
+    }
   };
+
   input.click();
 };
-// const onImageUploadHandler = (blobInfo, progress) => async () => {
-//   const blob = blobInfo.blob()
-// }
 
 const onImageUploadHandler = (blobInfo, progress) =>
   new Promise((resolve, reject) => {
     const file = blobInfo.blob();
     api
-      .presignedUrl({
-        contentType: file.type,
-        file: file.name,
-      })
+      .uploadToS3(
+        file.name,
+        file,
+        { contentEncoding: "blob", contentType: file.type },
+        (p) => {
+          try {
+            progress && progress(p);
+          } catch (e) {}
+        }
+      )
       .then((resp) => {
-        if (resp?.data?.error) return reject(resp?.data?.message);
-        const preSignedUrl = resp?.data?.url;
-        if (!preSignedUrl || preSignedUrl.trim().length < 1)
-          return reject(new Error("Url is empty!"));
-        const xhr = new XMLHttpRequest();
-        xhr.withCredentials = false;
-        xhr.open("PUT", preSignedUrl);
-
-        xhr.upload.onprogress = (e) => {
-          progress((e.loaded / e.total) * 100);
-        };
-
-        xhr.onload = () => {
-          if (xhr.status === 403)
-            return reject({
-              message: "HTTP Error: " + xhr.status,
-              remove: true,
-            });
-
-          if (xhr.status < 200 || xhr.status >= 300)
-            return reject("HTTP Error: " + xhr.status);
-
-          // const json = JSON.parse(xhr.responseText);
-
-          // if (!json || typeof json.location != 'string') return reject('Invalid JSON: ' + xhr.responseText);
-
-          resolve(preSignedUrl.split("?")[0]);
-        };
-
-        xhr.onerror = () => {
-          reject(
-            "Image upload failed due to a XHR Transport error. Code: " +
-              xhr.status
-          );
-        };
-
-        xhr.send(file);
+        const url =
+          resp?.data?.fileUrl ||
+          resp?.data?.direct_url ||
+          resp?.data?.directUrl ||
+          resp?.fileUrl ||
+          resp?.direct_url;
+        if (!url) return reject("Upload failed: no url returned from S3 API");
+        resolve(url);
       })
       .catch((error) => {
         reject(error);
@@ -146,16 +125,12 @@ const contentStyle = `body{font-family:-apple-system,BlinkMacSystemFont,'Segoe U
       branding: false,
       skin: false,
       content_css: false,
-      // content_css: '/_nuxt/node_modules/tinymce/skins/content/default/content.min.css',
       content_style: contentStyle,
-      // content_style: 'audio,video,img{display:inline;padding:2px}',
       plugins:
-        'advlist anchor autolink link lists image media preview save template table fullscreen code',
+        'advlist anchor autolink link lists image media preview save table fullscreen code',
       menubar: true,
       promotion: false,
       toolbar_mode: 'wrap',
-      // toolbar: 'undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | outdent indent',
-      // toolbar: 'alignment h bold italic underline strikethrough forecolor fontsizeselect link image media table fullscreen fontselect',
       toolbar: [
         'undo redo | fontfamily fontsize | styles | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link media image table | removeformat code fullscreen | help',
       ],

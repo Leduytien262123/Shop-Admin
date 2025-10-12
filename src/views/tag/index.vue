@@ -51,7 +51,10 @@
 </template>
 
 <script setup>
-import { NButton, NTag } from "naive-ui";
+import { NTag } from "naive-ui";
+import { renderButtonWithTooltip } from "@/utils/common";
+import IconPencil from "@/components/icon/Pencil.vue";
+import IconBin from "@/components/icon/Bin.vue";
 
 defineOptions({ name: "TagManagement" });
 
@@ -97,32 +100,26 @@ const columns = [
   {
     title: "Hành động",
     key: "actions",
+    width: 100,
     render(row) {
-      return h("div", { class: "flex gap-2" }, [
-        h(
-          NButton,
-          { size: "small", onClick: () => viewTag(row.id) },
-          { default: () => "Xem" }
-        ),
-        h(
-          NButton,
-          {
-            size: "small",
-            type: "primary",
+      return h(
+        "div",
+        { class: "flex items-center gap-4" },
+        [
+          renderButtonWithTooltip({
             onClick: () => editTag(row.id),
-          },
-          { default: () => "Sửa" }
-        ),
-        h(
-          NButton,
-          {
-            size: "small",
-            type: "error",
-            onClick: () => deleteTag(row.id),
-          },
-          { default: () => "Xóa" }
-        ),
-      ]);
+            content: h(IconPencil),
+            tooltipContent: "Chỉnh sửa",
+          }),
+          renderButtonWithTooltip({
+            onClick: () => {
+              deleteTag(row.id);
+            },
+            content: h(IconBin),
+            tooltipContent: "Xóa",
+          }),
+        ].filter(Boolean)
+      );
     },
   },
 ];

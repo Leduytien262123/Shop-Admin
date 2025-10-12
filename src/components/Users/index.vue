@@ -45,7 +45,10 @@
 </template>
 
 <script setup>
-import { NButton, NTag, NAvatar } from "naive-ui";
+import { NTag, NAvatar } from "naive-ui";
+import { renderButtonWithTooltip } from "@/utils/common";
+import IconPencil from "@/components/icon/Pencil.vue";
+import IconBin from "@/components/icon/Bin.vue";
 import userEmpty from "@/public/img/user_empty.jpg";
 
 defineOptions({ name: "ProductManagement" });
@@ -122,35 +125,26 @@ const columns = [
   {
     title: "Hành động",
     key: "actions",
+    width: 100,
     render(row) {
-      const isOwner = row.role === "owner";
-      const isSelf = row.id === userStore.userId;
-      return h("div", { class: "flex gap-8" }, [
-        h(
-          NButton,
-          { size: "small", onClick: () => viewUser(row.id) },
-          { default: () => "Xem" }
-        ),
-        h(
-          NButton,
-          {
-            size: "small",
-            type: "primary",
+      return h(
+        "div",
+        { class: "flex items-center gap-4" },
+        [
+          renderButtonWithTooltip({
             onClick: () => editUser(row.id),
-          },
-          { default: () => "Sửa" }
-        ),
-        h(
-          NButton,
-          {
-            size: "small",
-            type: "error",
-            onClick: () => deleteUser(row.id),
-            disabled: isOwner || isSelf,
-          },
-          { default: () => "Xóa" }
-        ),
-      ]);
+            content: h(IconPencil),
+            tooltipContent: "Chỉnh sửa",
+          }),
+          renderButtonWithTooltip({
+            onClick: () => {
+              deleteUser(row.id);
+            },
+            content: h(IconBin),
+            tooltipContent: "Xóa",
+          }),
+        ].filter(Boolean)
+      );
     },
   },
 ];

@@ -130,6 +130,13 @@ export default {
       responseType: "blob",
     }),
 
+  // Dashboard
+  getDashboardOverview: () =>
+    request.get("/api/admin/manage/dashboard/overview"),
+  getDashboardAnalytics: () =>
+    request.get("/api/admin/manage/dashboard/analytics"),
+  getDashboardAlerts: () => request.get("/api/admin/manage/dashboard/alerts"),
+
   // User APIs
   getUser: () => request.get("/api/user/profile"),
   updateProfile: (data) => request.put("/api/user/profile", data),

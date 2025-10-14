@@ -90,13 +90,13 @@ function addNewAddress() {
   }
   // Thêm địa chỉ mới lên đầu danh sách
   const newAddresses = [trimmedAddress, ...safeAddresses.value];
-  emit("update:addresses", newAddresses);
-  updateAddressOptions();
   selectedAddressIndex.value = 0; // Tự động chọn địa chỉ mới vừa thêm
   originalSelectedAddress.value = trimmedAddress;
   isAddingNewAddress.value = false;
   $message.success("Thêm địa chỉ thành công");
   isAddAddress.value = false;
+  emit("update:addresses", newAddresses);
+  updateAddressOptions();
 }
 
 function updateAddress() {
@@ -111,10 +111,10 @@ function updateAddress() {
   }
   const newAddresses = [...safeAddresses.value];
   newAddresses[currentIndex] = trimmedAddress;
-  emit("update:addresses", newAddresses);
   originalSelectedAddress.value = trimmedAddress;
-  updateAddressOptions();
   $message.success("Cập nhật địa chỉ thành công");
+  emit("update:addresses", newAddresses);
+  updateAddressOptions();
 }
 
 function removeAddress() {
@@ -125,12 +125,12 @@ function removeAddress() {
   const currentIndex = selectedAddressIndex.value;
   const newAddresses = [...safeAddresses.value];
   newAddresses.splice(currentIndex, 1);
-  emit("update:addresses", newAddresses);
-  updateAddressOptions();
   selectedAddressIndex.value = 0;
   currentInputAddress.value = newAddresses[0] || "";
   originalSelectedAddress.value = newAddresses[0] || "";
   $message.success("Xoá địa chỉ thành công");
+  emit("update:addresses", newAddresses);
+  updateAddressOptions();
 }
 
 const canUpdate = computed(() => {
@@ -151,23 +151,19 @@ function cancelAddAddress() {
 }
 
 function handleSaveRequest() {
-  // Nếu đang thêm mới địa chỉ
   if (isAddingNewAddress.value) {
-    // Nếu chưa nhập hoặc nhập chưa đủ 20 ký tự thì báo lỗi ở ô input
     if (
       !currentInputAddress.value ||
       currentInputAddress.value.trim().length < 20
     ) {
-      emit("input-address-change", currentInputAddress.value); // Để cha validate input
+      emit("input-address-change", currentInputAddress.value);
       return false;
     }
-    // Nếu đã nhập >20 ký tự mà chưa click thêm mới thì báo message
     $message.error(
       "Vui lòng nhấn 'Thêm địa chỉ' để xác nhận địa chỉ mới trước khi lưu"
     );
     return false;
   }
-  // Nếu có thể cập nhật địa chỉ (nút cập nhật không bị disabled)
   if (canUpdate.value) {
     $message.error("Vui lòng xác nhận cập nhật địa chỉ trước khi lưu");
     return false;

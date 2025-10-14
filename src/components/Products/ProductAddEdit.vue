@@ -18,6 +18,7 @@ const formValue = ref({
   description: "",
   price: null,
   discount_price: null,
+  is_active: true, // default value, will be overwritten when loading product
   metadata: {
     meta_title: "",
     meta_keywords: "",
@@ -332,6 +333,15 @@ async function handleSave() {
                 type="textarea"
                 placeholder="Nhập mô tả sản phẩm"
               />
+            </n-form-item>
+          </n-grid-item>
+
+          <n-grid-item span="3">
+            <n-form-item label="Trạng thái" path="is_active">
+              <n-switch v-model:value="formValue.is_active">
+                <template #checked> Hoạt động </template>
+                <template #unchecked> Không hoạt động </template>
+              </n-switch>
             </n-form-item>
           </n-grid-item>
 

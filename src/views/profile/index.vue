@@ -5,7 +5,7 @@
         <n-avatar
           round
           :size="100"
-          :src="userStore?.avatar?.url || 'userEmpty'"
+          :src="userStore?.avatar[0]?.url || 'userEmpty'"
         />
         <div class="ml-20">
           <div class="flex items-center text-16">

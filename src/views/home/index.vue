@@ -6,7 +6,7 @@
           <n-avatar
             round
             :size="60"
-            :src="userStore.avatar?.url || userEmpty"
+            :src="userStore.avatar[0]?.url || userEmpty"
             class="flex-shrink-0"
           />
           <div class="ml-20 flex-col">
@@ -143,7 +143,7 @@
         </n-divider>
       </n-card>
 
-      <n-card class="ml-12 w-50%" title="🛠️ Công nghệ" segmented>
+      <n-card class="ml-12 w-50%" title="Thống kê theo danh mục" segmented>
         <VChart :option="skillOption" autoresize />
       </n-card>
     </div>
@@ -171,6 +171,7 @@ import VChart from "vue-echarts";
 import { useUserStore } from "@/store";
 
 const userStore = useUserStore();
+const dataOverview = ref([]);
 
 echarts.use([
   TooltipComponent,
@@ -254,7 +255,25 @@ const trendOption = {
   ],
 };
 
-const skillOption = {
+const getDashboardOverview = async () => {
+  try {
+    const resOverview = await api.getDashboardOverview();
+    dataOverview.value =
+      resOverview?.data?.data?.top_categories?.map((item) => ({
+        name: item.category_name,
+        value: item.orders,
+      })) || [];
+  } catch (e) {
+    console.error("getDashboardOverview error", e);
+    dataOverview.value = [];
+  }
+};
+
+onMounted(async () => {
+  await getDashboardOverview();
+});
+
+const skillOption = computed(() => ({
   tooltip: {
     trigger: "item",
     formatter({ name, value }) {
@@ -289,14 +308,8 @@ const skillOption = {
       labelLine: {
         show: false,
       },
-      data: [
-        { value: 38.5, name: "Vue" },
-        { value: 37.0, name: "JavaScript" },
-        { value: 6.5, name: "CSS" },
-        { value: 6.2, name: "HTML" },
-        { value: 1.8, name: "Other" },
-      ],
+      data: dataOverview.value,
     },
   ],
-};
+}));
 </script>

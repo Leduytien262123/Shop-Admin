@@ -265,14 +265,6 @@ async function loadDiscounts() {
     const response = await api.getDiscounts(params);
     const list = response.data?.data?.discounts || [];
     discounts.value = list.map((e) => ({ label: e.name, value: e.id }));
-    productsMap.value = {};
-    list.forEach((e) => {
-      productsMap.value[e.id] = {
-        id: e.id,
-        name: e.name,
-        discount: e.discount ?? 0,
-      };
-    });
   } catch (error) {
     $message.error("Không thể tải mã giảm giá");
   } finally {
@@ -320,16 +312,16 @@ async function loadOrder() {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   // Gán người tạo khi tạo mới
   if (!isEdit.value) {
     productForm.value.creator_id = userStore.userId;
     productForm.value.creator_name = userStore.username;
   }
-  loadProducts();
-  loadDiscounts();
+  await loadProducts();
+  await loadDiscounts();
   if (isEdit.value) {
-    loadOrder();
+    await loadOrder();
   }
 });
 
@@ -459,8 +451,7 @@ async function handleSave() {
                 :disabled="isEdit"
                 placeholder="Chọn loại đơn"
               />
-            </n-form-item>
-          </n-grid-item> -->
+            </n-form-item> -->
 
           <n-grid-item span="1">
             <n-form-item label="Người tạo" path="creator_name">
@@ -516,7 +507,7 @@ async function handleSave() {
             <n-form-item label="Địa chỉ" path="address">
               <UpdateAddress
                 ref="updateAddressRef"
-                :isDisabled="productForm.status !== 'pending'"
+                :isDisabled="productForm.status !== 'pending' && isEdit"
                 :addresses="productForm.addresses"
                 @update:addresses="productForm.addresses = $event"
                 @input-address-change="handleAddressChange"
@@ -570,7 +561,6 @@ async function handleSave() {
           </n-grid-item>
         </n-grid>
 
-        <!-- Render selected products with quantity and price, allow remove -->
         <n-grid cols="5" x-gap="16" y-gap="16">
           <template v-for="(p, idx) in productForm.product_ids" :key="p.id">
             <n-grid-item :span="2">

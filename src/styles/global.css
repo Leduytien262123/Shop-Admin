@@ -133,8 +133,10 @@ html:not(.dark) .n-empty .n-empty__icon svg {
   --un-text-opacity: 1;
 }
 
-.custom-collapse-header-light-blue.n-collapse-item > .n-collapse-item__header > .n-collapse-item__header-main {
-  background-color: #316C72FF !important;
+.custom-collapse-header-light-blue.n-collapse-item
+  > .n-collapse-item__header
+  > .n-collapse-item__header-main {
+  background-color: #316c72ff !important;
   min-height: 40px;
   padding-left: 12px;
   padding-right: 10px;
@@ -145,6 +147,6 @@ html:not(.dark) .n-empty .n-empty__icon svg {
   justify-content: space-between !important;
 }
 
-i.n-base-icon {
+/* i.n-base-icon {
   color: white;
-}
+} */

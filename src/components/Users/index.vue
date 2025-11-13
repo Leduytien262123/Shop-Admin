@@ -93,7 +93,7 @@ const columns = [
       return h("div", { class: "flex items-center gap-12" }, [
         h(NAvatar, {
           size: "medium",
-          src: row?.avatar[0]?.url || userEmpty,
+          src: row?.avatar?.[0]?.url || userEmpty,
           class: "rounded-full min-w-40px max-w-40px min-h-40px max-h-40px",
         }),
         h("div", { class: "flex flex-col text-[14px]" }, [
